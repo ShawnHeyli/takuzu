@@ -1,12 +1,12 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -std=c17 -O2
-CPPFLAGS = -Wall -Wextra -Werror -pedantic -std=c17 -O2
-LDFLAGS
+.PHONY: all clean help
 
-.PHONY clean help all
+SRC_DIR := src
 
 all:
+	make -f ${SRC_DIR}/Makefile
 
 clean:
+	make -f ${SRC_DIR}/Makefile clean
 
 help:
+	@make --quiet -f ${SRC_DIR}/Makefile help
