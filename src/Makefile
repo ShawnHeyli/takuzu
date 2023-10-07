@@ -6,7 +6,7 @@ OBJ_DIR := obj
 BIN_DIR := bin
 
 CC := gcc
-CFLAGS := -Wall -Wextra -Werror -pedantic
+CFLAGS :=
 CPPFLAGS := -I$(INC_DIR)
 LDFLAGS := 
 
@@ -15,6 +15,13 @@ SRCS := $(wildcard $(SRC_DIR)/*.c)
 OBJS := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 EXEC := $(BIN_DIR)/takuzu
+
+
+ifdef DEV_MOD
+#pedantic failed ...
+CFLAGS += -Wall -Wextra -Werror -g\
+-fsanitize=address -fsanitize=undefined --stack-protector-all
+endif
 
 all: $(EXEC)
 
@@ -28,7 +35,12 @@ help:
 	@echo -ne "make clean:\n"
 	@echo -ne "	Clean all the object files and all executable file\n"
 
+
 #dependency
+$(OBJ_DIR)/takuzu.c: $(INC_DIR)/takuzu.h
+
+
+#builder
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) -c $< $(CPPFLAGS) $(CFLAGS) -o $@
