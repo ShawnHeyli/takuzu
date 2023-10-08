@@ -1,4 +1,4 @@
-.PHONY: all clean
+.PHONY: all arg_parser_cover clean clean_emacs clean_coverage
 
 TEST_DIR := tests
 

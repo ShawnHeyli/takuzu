@@ -1,4 +1,4 @@
-.PHONY: clean help all
+.PHONY: all clean clean_emacs clean_coverage help
 
 SRC_DIR := src
 INC_DIR := include

@@ -1,4 +1,4 @@
-.PHONY: all dev arg_parser_t arg_parser_tc clean help
+.PHONY: all dev arg_parser_t arg_parser_tc clean clean_emacs clean_coverage clean_full help
 
 SRC_TAKUZU_DIR := src
 TEST_DIR := tests
