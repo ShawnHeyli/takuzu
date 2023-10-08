@@ -23,21 +23,37 @@ CFLAGS += -Wall -Wextra -Werror -g\
 -fsanitize=address -fsanitize=undefined --stack-protector-all
 endif
 
+
+ifdef COVERAGE
+GCOV_OPT := -fprofile-arcs -ftest-coverage
+CFLAGS += $(GCOV_OPT)
+LDFLAGS += $(GCOV_OPT)
+endif
+
+
 all: $(EXEC)
 
 clean:
 	rm -f $(BIN_DIR)/*
 	rm -f $(OBJ_DIR)/*.o
 
+clean_emacs:
+	rm -f $(SRC_DIR)/*~
+	rm -f $(INC_DIR)/*~
+
+clean_coverage:
+	rm -f $(OBJ_DIR)/*.gcno
+
+
 help:
 	@echo -ne "make:\n"
 	@echo -ne "	Classic build of project\n\n"
 	@echo -ne "make clean:\n"
-	@echo -ne "	Clean all the object files and all executable file\n"
+	@echo -ne "	Clean all the object files and all executable file\n\n"
 
 
 #dependency
-$(OBJ_DIR)/takuzu.c: $(INC_DIR)/takuzu.h
+$(OBJ_DIR)/takuzu.o: $(INC_DIR)/takuzu.h
 
 
 #builder

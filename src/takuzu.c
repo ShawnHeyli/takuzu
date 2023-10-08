@@ -13,19 +13,11 @@
 #define MIN_GIRD_SIZE_DOWN 3
 #define MAX_GIRD_SIZE_UP 65
 
-static inline void usage (char *prg_name) {
-  printf ("Usage :%*c%s [-a|-o FILE|-v|-h] FILE...\n", 10, ' ', prg_name);
-  printf ("%*c%s-g[SIZE] [-u|-o FILE|-v|-h]\n\n", 17, ' ', prg_name); 
-  printf ("Solve or generate takuzu grids of size: 4, 8 16, 32, 64\n\n\
-	  -a, --all search for all possible solutions\n\
-	  -g[N], --generate[=N] generate a grid of size NxN (default:8)\n\
-	  -o FILE, --output FILE write output to FILE\n\
-	  -u, --unique generate a grid with unique solution\n\
-	  -v, --verbose verbose output\n\
-	  -h, --help display this help and exit\n");
-  fflush (stdout);
-  exit (EXIT_SUCCESS);
-}
+
+
+/* --------------------------------------------------------------------------------------------- */
+// ----------------------------------- STRUCTURES AND ENUMS ------------------------------------ //
+/* --------------------------------------------------------------------------------------------- */
 
 typedef enum { SOLVER, GENERATOR } modes;
 
@@ -43,18 +35,21 @@ typedef struct {
   
 } software_infos;
 
-void init_software_infos (software_infos *si) {
-  si->mode = SOLVER;
 
-  si->gird_size_tg = 0;
-  si->uniq_sol_gird = false;
-  
-  si->all_sol = false;
-  si->in_gird_s = NULL;
-  
-  si->out_s = stdout;
-  si->verbose = false;
-}
+
+/* --------------------------------------------------------------------------------------------- */
+// ----------------------------- DECLARATION OF MAIN UTIL FUNCTIONS ---------------------------- //
+/* --------------------------------------------------------------------------------------------- */
+
+static inline void usage (char *);
+
+static inline void init_software_infos (software_infos *);
+
+
+
+/* --------------------------------------------------------------------------------------------- */
+// --------------------------------------- MAIN FUNCTION --------------------------------------- //
+/* --------------------------------------------------------------------------------------------- */
 
 int main(int argc,   char* argv[]) {
   int opt;
@@ -77,6 +72,7 @@ int main(int argc,   char* argv[]) {
       case 'a':
 	if (sw_if.mode == GENERATOR) {
 	  fprintf (stderr, "ERROR -> unauthorized -a, --all option in GENERATOR mode!\n");
+	  exit (EXIT_FAILURE);
 	}
 	sw_if.all_sol = true;
 	break;
@@ -90,6 +86,11 @@ int main(int argc,   char* argv[]) {
 	break;
       
       case 'g': // Option for generate gird of optarg*optarg size
+	if (sw_if.all_sol) {
+	  fprintf (stderr, "ERROR -> unauthorized -a, --all option in GENERATOR mode!\n");
+	  exit (EXIT_FAILURE);
+	}
+	
 	// Converting optarg (string) to long integer
 	long gird_size = strtol (optarg, NULL, 10);
 	if (gird_size == LONG_MAX || gird_size == LONG_MIN) {
@@ -133,11 +134,6 @@ int main(int argc,   char* argv[]) {
 	
       case 'h':
 	usage (argv[0]);
-	break;
-
-      default:
-	printf ("Jena :: %s\n", optarg);
-	break;
     }
   }
 
@@ -154,7 +150,6 @@ int main(int argc,   char* argv[]) {
       exit (EXIT_FAILURE);
     }
   }
-  printf ("optarg : %s\n", argv[optind]);
 
 
   
@@ -170,4 +165,37 @@ int main(int argc,   char* argv[]) {
   }
 
   return EXIT_SUCCESS;
+}
+
+
+
+/* --------------------------------------------------------------------------------------------- */
+// ------------------------------- BODY OF MAIN UTIL FUNCTIONS  -------------------------------- //
+/* --------------------------------------------------------------------------------------------- */
+
+static inline void usage (char *prg_name) {
+  printf ("Usage :%*c%s [-a|-o FILE|-v|-h] FILE...\n", 10, ' ', prg_name);
+  printf ("%*c%s-g[SIZE] [-u|-o FILE|-v|-h]\n\n", 17, ' ', prg_name); 
+  printf ("Solve or generate takuzu grids of size: 4, 8 16, 32, 64\n\n\
+	  -a, --all search for all possible solutions\n\
+	  -g[N], --generate[=N] generate a grid of size NxN (default:8)\n\
+	  -o FILE, --output FILE write output to FILE\n\
+	  -u, --unique generate a grid with unique solution\n\
+	  -v, --verbose verbose output\n\
+	  -h, --help display this help and exit\n");
+  fflush (stdout);
+  exit (EXIT_SUCCESS);
+}
+
+static inline void init_software_infos (software_infos *si) {
+  si->mode = SOLVER;
+
+  si->gird_size_tg = 0;
+  si->uniq_sol_gird = false;
+  
+  si->all_sol = false;
+  si->in_gird_s = NULL;
+  
+  si->out_s = stdout;
+  si->verbose = false;
 }

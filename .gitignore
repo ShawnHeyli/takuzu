@@ -1,3 +1,9 @@
 .vscode
 bin/
 obj/
+tests/bin/
+tests/obj/
+tests/coverage/log/
+tests/coverage/html/
+trash/
+*~
