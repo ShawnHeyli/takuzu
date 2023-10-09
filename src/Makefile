@@ -18,8 +18,7 @@ EXEC := $(BIN_DIR)/takuzu
 
 
 ifdef DEV_MOD
-#pedantic failed ...
-CFLAGS += -Wall -Wextra -Werror -g\
+CFLAGS += -Wall -Wextra -Werror -g -pedantic\
 -fsanitize=address -fsanitize=undefined --stack-protector-all
 endif
 

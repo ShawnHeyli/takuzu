@@ -1,13 +1,14 @@
 #ifndef TAKUZU_H
 #define TAKUZU_H
 
+#include <stdint.h>
+#include <stdio.h>
 
 #define ERROR_BUFFER_SIZE 128
 #define MIN_GIRD_SIZE 4
 #define MAX_GIRD_SIZE 64
 #define MIN_GIRD_SIZE_DOWN 3
 #define MAX_GIRD_SIZE_UP 65
-
 
 
 /* --------------------------------------------------------------------------------------------- */
