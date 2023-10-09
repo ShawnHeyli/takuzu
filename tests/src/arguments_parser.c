@@ -211,8 +211,8 @@ CuSuite* arg_parser_tests (char bin_path[], char vg_path[], char log_path[]){
   vu_gird_basename = vu_gird_path + next_char;
   vu_gird_bs_max_size = MIN_PATH_SIZE - next_char;
 
-  snprintf (err_log_path, MIN_PATH_SIZE, ">>%s/err.log", log_path);
-  snprintf (out_log_path, MIN_PATH_SIZE, "2>>%s/out.log", log_path);
+  snprintf (out_log_path, MIN_PATH_SIZE, ">>%s/out.log", log_path);
+  snprintf (err_log_path, MIN_PATH_SIZE, "2>>%s/err.log", log_path);
   
   CuSuite* suite = CuSuiteNew ();
   SUITE_ADD_TEST (suite, single_help);
