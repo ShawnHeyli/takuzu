@@ -178,8 +178,14 @@ void generator_mode_wrong_option_a_01 (CuTest* tc) {
   CuAssertTrue (tc, system(exec_path) != 0);
 }
 
-void solver_mode_wrong_option_u (CuTest* tc) {
+void solver_mode_wrong_option_u_00 (CuTest* tc) {
    snprintf (exec_basename, exec_bs_max_size, "takuzu -u %s00.gird %s %s", \
+	     vu_gird_path, out_log_path, err_log_path);
+  CuAssertTrue (tc, system(exec_path) != 0);
+}
+
+void solver_mode_wrong_option_u_01 (CuTest* tc) {
+   snprintf (exec_basename, exec_bs_max_size, "takuzu %s00.gird -u %s %s", \
 	     vu_gird_path, out_log_path, err_log_path);
   CuAssertTrue (tc, system(exec_path) != 0);
 }
@@ -232,7 +238,8 @@ CuSuite* arg_parser_tests (char bin_path[], char vg_path[], char log_path[]){
   SUITE_ADD_TEST (suite, generator_mode_negative_number);
   SUITE_ADD_TEST (suite, generator_mode_wrong_option_a_00);
   SUITE_ADD_TEST (suite, generator_mode_wrong_option_a_01);
-  SUITE_ADD_TEST (suite, solver_mode_wrong_option_u);
+  SUITE_ADD_TEST (suite, solver_mode_wrong_option_u_00);
+  SUITE_ADD_TEST (suite, solver_mode_wrong_option_u_01);
   SUITE_ADD_TEST (suite, without_argument);
   
   return suite;
