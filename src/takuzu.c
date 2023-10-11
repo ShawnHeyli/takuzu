@@ -230,8 +230,6 @@ bool check_char(const char c) {
   return true;
 }
 
-// To read the file only fgetc is allowed
-// Only 4,8,16,32,64 elements per row allowed
 void file_parser(t_grid *grid, char *filename) {
   puts("file_parser");
   int allowed_sizes[5] = {4, 8, 16, 32, 64};
@@ -255,31 +253,33 @@ void file_parser(t_grid *grid, char *filename) {
   char line[MAX_GRID_SIZE];
   int lineSize = 0;
 
-  // Ignore lines that start with '#' (comments)
-  // while ((read = fgetc(fd)) == '#') {
-  //  while ((read = fgetc(fd)) != '\n') {
-  //    if (read == EOF) {
-  //      fprintf(stderr, "ERROR -> empty file!\n");
-  //      exit(EXIT_FAILURE);
-  //    }
-  //  }
-  //}
-
-  // Read first line to get the size of a row
+  // Read first line & skip comment lines along the way
   while ((read = fgetc(fd)) != '\n') {
-    if (read == EOF) {
-      fprintf(stderr, "ERROR -> empty file!\n");
-      exit(EXIT_FAILURE);
-    }
+    switch (read) {
+      // Comment line
+      case '#':
+        while ((read = fgetc(fd)) != '\n') {
+          // ignore and skip
+        }
+        break;
 
-    if (check_char(read)) {
-      line[lineSize] = read;
-      lineSize++;
-    } else if (read == ' ' || read == '\t') {
-      // ignore and skip
-    } else {
-      fprintf(stderr, "ERROR -> invalid character!\n");
-      exit(EXIT_FAILURE);
+      case EOF:
+        fprintf(stderr, "ERROR -> empty file!\n");
+        exit(EXIT_FAILURE);
+        break;
+
+      // Start of the first line
+      default:
+        if (check_char(read)) {
+          line[lineSize] = read;
+          lineSize++;
+        } else if (read == ' ' || read == '\t') {
+          // ignore and skip
+        } else {
+          fprintf(stderr, "ERROR -> invalid character!\n");
+          exit(EXIT_FAILURE);
+        }
+        break;
     }
   }
 
