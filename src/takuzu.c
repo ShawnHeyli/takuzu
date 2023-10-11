@@ -237,16 +237,18 @@ void file_parser(t_grid *grid, char *filename) {
   int allowed_sizes[5] = {4, 8, 16, 32, 64};
 
   FILE *fd = fopen(filename, "r");
-  switch (errno) {
-    case ENOENT:
-      fprintf(stderr, "ERROR -> file '%s' not found!\n", filename);
-      break;
-    case EACCES:
-      fprintf(stderr, "ERROR -> file '%s' not accessible!\n", filename);
-      break;
-    default:
-      fprintf(stderr, "ERROR -> Unknow error with '%s'!\n", filename);
-      exit(EXIT_FAILURE);
+  if (fd == NULL) {
+    switch (errno) {
+      case ENOENT:
+        fprintf(stderr, "ERROR -> file '%s' not found!\n", filename);
+        break;
+      case EACCES:
+        fprintf(stderr, "ERROR -> file '%s' not accessible!\n", filename);
+        break;
+      default:
+        fprintf(stderr, "ERROR -> Unknow error with '%s'!\n", filename);
+        exit(EXIT_FAILURE);
+    }
   }
 
   char read;
