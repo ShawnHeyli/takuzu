@@ -1,6 +1,6 @@
 .PHONY: all clean help
 
-CC := clang
+CC := gcc
 CFLAGS := -std=c17 -Wall -pedantic
 CPPFLAGS := -Iinclude -lm
 LDFLAGS := 
@@ -12,10 +12,10 @@ clean:
 	rm -f obj/*.o
 
 help:
-	@echo -ne "make:\n"
-	@echo -ne "	Classic build of project\n\n"
-	@echo -ne "make clean:\n"
-	@echo -ne "	Clean all the object files and all executable file\n\n"
+	@echo "make:\n"
+	@echo "Classic build of project\n\n"
+	@echo "make clean:\n"
+	@echo "Clean all the object files and all executable file\n\n"
 
 
 bin/takuzu: src/takuzu.c
