@@ -25,8 +25,6 @@ int main(int argc, char *argv[]) {
 
   init_software_infos(&sw_if);
 
-  char error_buffer[ERROR_BUFFER_SIZE];
-
   static struct option long_opts[] = {{"all", no_argument, 0, 'a'},
                                       {"generate", required_argument, 0, 'g'},
                                       {"ouput", required_argument, 0, 'o'},
@@ -80,8 +78,8 @@ int main(int argc, char *argv[]) {
         // Converting optarg (string) to long integer
         long gird_size = strtol(optarg, NULL, 10);
         if (gird_size == LONG_MAX || gird_size == LONG_MIN) {
-          snprintf(error_buffer, ERROR_BUFFER_SIZE, "ERROR -> '%s' ", optarg);
-          perror(error_buffer);
+          fprintf(stderr, "ERROR -> '%s' ", optarg);
+          perror("Problem with args");
           exit(EXIT_FAILURE);
         }
 
@@ -110,8 +108,8 @@ int main(int argc, char *argv[]) {
       case 'o':
         sw_if.out_s = fopen(optarg, "r");
         if (sw_if.out_s == NULL) {
-          snprintf(error_buffer, ERROR_BUFFER_SIZE, "ERROR -> '%s' ", optarg);
-          perror(error_buffer);
+          fprintf(stderr, "ERROR -> '%s' ", optarg);
+          perror("Problem with args");
           exit(EXIT_FAILURE);
         }
         break;
@@ -133,8 +131,8 @@ int main(int argc, char *argv[]) {
 
     sw_if.in_grid_s = fopen(argv[optind], "r");
     if (!sw_if.in_grid_s) {
-      snprintf(error_buffer, ERROR_BUFFER_SIZE, "ERROR -> '%s' ", argv[optind]);
-      perror(error_buffer);
+      fprintf(stderr, "ERROR -> '%s' ", argv[optind]);
+      perror("Problem with args");
       exit(EXIT_FAILURE);
     }
   }
