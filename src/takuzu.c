@@ -10,6 +10,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "grid.h"
+
 /* ---------------------------------------------------------------------------------------------
  */
 // --------------------------------------- MAIN FUNCTION
@@ -52,6 +54,9 @@ int main(int argc, char *argv[]) {
         t_grid g;
         file_parser(&g, argv[optind]);
         print_grid(&g, stdout);
+        printf("consistent : %d\n", is_consistent(&g));
+        // printf("valid : %d\n", is_valid(&g));
+        grid_free(&g);
         break;
 
       case 'u':
