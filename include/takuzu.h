@@ -51,9 +51,9 @@ typedef struct {
 /* ---------------------------------------------------------------------------------------------
  */
 
-static inline void usage(char *);
+void usage(char *);
 
-static inline void init_software_infos(software_infos *);
+void init_software_infos(software_infos *);
 
 void grid_allocate(t_grid *g, int size);
 void grid_free(t_grid *g);

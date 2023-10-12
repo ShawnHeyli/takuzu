@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
 /* ---------------------------------------------------------------------------------------------
  */
 
-static inline void usage(char *prg_name) {
+void usage(char *prg_name) {
   printf("Usage :%*c%s [-a|-o FILE|-v|-h] FILE...\n", 10, ' ', prg_name);
   printf("%*c%s-g[SIZE] [-u|-o FILE|-v|-h]\n\n", 17, ' ', prg_name);
   printf(
@@ -172,7 +172,7 @@ static inline void usage(char *prg_name) {
   exit(EXIT_SUCCESS);
 }
 
-static inline void init_software_infos(software_infos *si) {
+void init_software_infos(software_infos *si) {
   si->mode = SOLVER;
 
   si->grid_size_tg = 0;
