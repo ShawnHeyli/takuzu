@@ -18,9 +18,8 @@ help:
 	@echo "Clean all the object files and all executable file\n\n"
 
 
-bin/takuzu: src/takuzu.c
-	$(CC) $< $(CPPFLAGS) $(CFLAGS) -o $@
+bin/takuzu: src/takuzu.c src/grid.c
+	$(CC) $^ $(CPPFLAGS) $(CFLAGS) -o $@
 
-
-bin/takuzu_debug: src/takuzu.c
-	$(CC) $< $(CPPFLAGS) $(CFLAGS) -g -o $@
+bin/takuzu_debug: src/takuzu.c src/grid.c
+	$(CC) $^ $(CPPFLAGS) $(CFLAGS) -g -o $@
