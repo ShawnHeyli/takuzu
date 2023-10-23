@@ -76,8 +76,8 @@ int main(int argc, char *argv[]) {
         }
 
         // Converting optarg (string) to long integer
-        long gird_size = strtol(optarg, NULL, 10);
-        if (gird_size == LONG_MAX || gird_size == LONG_MIN) {
+        long grid_size = strtol(optarg, NULL, 10);
+        if (grid_size == LONG_MAX || grid_size == LONG_MIN) {
           fprintf(stderr, "ERROR -> '%s' ", optarg);
           perror("Problem with args");
           exit(EXIT_FAILURE);
@@ -87,8 +87,8 @@ int main(int argc, char *argv[]) {
         sw_if.grid_size_tg = MIN_GRID_SIZE;
         bool valid_gird_size = false;
         while (sw_if.grid_size_tg < MAX_GRID_SIZE + 1 &&
-               gird_size >= sw_if.grid_size_tg) {
-          if (gird_size == sw_if.grid_size_tg) {
+               grid_size >= sw_if.grid_size_tg) {
+          if (grid_size == sw_if.grid_size_tg) {
             valid_gird_size = true;
             break;
           }
