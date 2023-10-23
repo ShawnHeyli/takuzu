@@ -51,7 +51,7 @@ typedef struct {
 /* ---------------------------------------------------------------------------------------------
  */
 
-void usage(char *);
+void usage();
 
 void init_software_infos(software_infos *);
 

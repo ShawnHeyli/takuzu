@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
         break;
 
       case 'h':
-        usage(argv[0]);
+        usage();
     }
   }
 
@@ -157,11 +157,11 @@ int main(int argc, char *argv[]) {
 /* ---------------------------------------------------------------------------------------------
  */
 
-void usage(char *prg_name) {
-  printf("Usage :%*c%s [-a|-o FILE|-v|-h] FILE...\n", 10, ' ', prg_name);
-  printf("%*c%s-g[SIZE] [-u|-o FILE|-v|-h]\n\n", 17, ' ', prg_name);
+void usage() {
+  printf("Usage :takuzu [-a|-o FILE|-v|-h] FILE...\n");
+  printf("takuzu -g[SIZE] [-u|-o FILE|-v|-h]\n\n");
   printf(
-      "Solve or generate takuzu grids of size: 4, 8 16, 32, 64\n\n\
+      "Solve or generate takuzu grids of size: 4, 8 16, 32, 64\n\
 	  -a, --all search for all possible solutions\n\
 	  -g[N], --generate[=N] generate a grid of size NxN (default:8)\n\
 	  -o FILE, --output FILE write output to FILE\n\
