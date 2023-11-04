@@ -23,7 +23,7 @@
             "command": "${workspaceFolder}/bin/takuzu",
             "args": [
                 "-a",
-                "grid_valid"
+                "test/grid_valid"
             ],
             "dependsOn": "Run make all",
             "presentation": {
@@ -42,7 +42,7 @@
             "command": "${workspaceFolder}/bin/takuzu",
             "args": [
                 "-a",
-                "grid_identical_lines"
+                "test/grid_identical_lines"
             ],
             "dependsOn": "Run make all",
             "presentation": {
@@ -61,7 +61,7 @@
             "command": "${workspaceFolder}/bin/takuzu",
             "args": [
                 "-a",
-                "grid_consistent"
+                "test/grid_consistent"
             ],
             "dependsOn": "Run make all",
             "presentation": {
@@ -93,7 +93,28 @@
                 "clear": true
             },
             "problemMatcher": []
-        }
+        },
+        {
+            "type": "shell",
+            "label": "Takuzu generate 16x16 grid",
+            "command": "${workspaceFolder}/bin/takuzu",
+            "args": [
+                "-g",
+                "16",
+                "--number",
+                "8"
+            ],
+            "dependsOn": "Run make all",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "problemMatcher": [],
+        },
     ],
     "version": "2.0.0"
 }

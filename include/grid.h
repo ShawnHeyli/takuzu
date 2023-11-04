@@ -8,9 +8,24 @@
 #include "takuzu.h"
 
 void grid_copy(t_grid *gs, t_grid *gd);
-void set_cell(int i, int j, t_grid *g, char v);
+bool set_cell(int i, int j, t_grid *g, char v);
 char get_cell(int i, int j, t_grid *g);
+
+bool is_row_consistent(int row, t_grid *g);
+bool is_col_consistent(int col, t_grid *g);
+
+bool is_row_empty(int row, t_grid *g);
+bool is_col_empty(int row, t_grid *g);
+bool is_full(t_grid *g);
 
 bool is_consistent(t_grid *g);
 bool is_valid(t_grid *g);
+
+bool apply_heuristic1(t_grid *g);
+bool sub_heuristic1(t_grid *g, char *line);
+bool apply_heuristic2(t_grid *g);
+bool sub_heuristic2(t_grid *g, char *line);
+
+void apply_heuristics(t_grid *g);
+void generate_grid(t_grid *g, long number);
 #endif

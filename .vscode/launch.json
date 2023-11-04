@@ -12,7 +12,7 @@
       "program": "${workspaceFolder}/bin/takuzu_debug",
       "args": [
         "-a",
-        "grid_valid"
+        "test/grid_valid"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -40,7 +40,37 @@
       "program": "${workspaceFolder}/bin/takuzu_debug",
       "args": [
         "-a",
-        "grid_consistent"
+        "test/grid_consistent"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set Disassembly Flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "generate 16x16 grid",
+      "preLaunchTask": "Run make all",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/takuzu_debug",
+      "args": [
+        "-g",
+        "16",
+        "--number",
+        "8"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

@@ -22,6 +22,7 @@ typedef struct {
   modes mode;  // software mode
 
   uint8_t grid_size_tg;  // size of grid to generate
+  uint8_t grid_start;    // numbers of 0 and 1 in the generated grid
   bool uniq_sol_grid;    // generate grid with unique solution
 
   bool all_sol;     // search for all solutions

@@ -8,9 +8,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "grid.h"
+
+#define N 4
 
 /* ---------------------------------------------------------------------------------------------
  */
@@ -27,6 +30,7 @@ int main(int argc, char *argv[]) {
 
   static struct option long_opts[] = {{"all", no_argument, 0, 'a'},
                                       {"generate", required_argument, 0, 'g'},
+                                      {"number", required_argument, 0, 'N'},
                                       {"ouput", required_argument, 0, 'o'},
                                       {"unique", no_argument, 0, 'u'},
                                       {"verbose", no_argument, 0, 'v'},
@@ -49,12 +53,9 @@ int main(int argc, char *argv[]) {
           fprintf(stderr, "ERROR -> no input file to solve!\n");
           exit(EXIT_FAILURE);
         }
-        t_grid g;
-        file_parser(&g, argv[optind]);
-        print_grid(&g, stdout);
-        printf("consistent : %d\n", is_consistent(&g));
-        // printf("valid : %d\n", is_valid(&g));
-        grid_free(&g);
+
+        // The only mode available for -a
+        sw_if.mode = SOLVER;
         break;
 
       case 'u':
@@ -65,6 +66,26 @@ int main(int argc, char *argv[]) {
           exit(EXIT_FAILURE);
         }
         sw_if.uniq_sol_grid = true;
+        break;
+
+      // Number of both 0 and 1 in the entire generated grid
+      case 'N':
+        if (sw_if.mode == SOLVER) {
+          fprintf(
+              stderr,
+              "ERROR -> unauthorized -N, --number option in SOLVER mode!\n");
+          exit(EXIT_FAILURE);
+        }
+
+        // Converting optarg (string) to long integer
+        long number = strtol(optarg, NULL, 10);
+        if (number == LONG_MAX || number == LONG_MIN) {
+          fprintf(stderr, "ERROR -> '%s' ", optarg);
+          perror("Problem with args");
+          exit(EXIT_FAILURE);
+        }
+
+        sw_if.grid_start = number;
         break;
 
       case 'g':  // Option for generate grid of optarg*optarg size
@@ -84,22 +105,27 @@ int main(int argc, char *argv[]) {
         }
 
         // Check if given number is valid
-        sw_if.grid_size_tg = MIN_GRID_SIZE;
-        bool valid_gird_size = false;
-        while (sw_if.grid_size_tg < MAX_GRID_SIZE + 1 &&
-               grid_size >= sw_if.grid_size_tg) {
-          if (grid_size == sw_if.grid_size_tg) {
-            valid_gird_size = true;
+        int allowed_sizes[5] = {4, 8, 16, 32, 64};
+        bool valid_size = false;
+        for (int i = 0; i < 5; i++) {
+          if (grid_size == allowed_sizes[i]) {
+            valid_size = true;
             break;
           }
-          sw_if.grid_size_tg <<= 1;
         }
-        if (!valid_gird_size) {
+
+        if (valid_size == false) {
           fprintf(stderr,
-                  "ERROR -> gird size not accepted!"
-                  "Authorized : [4; 8; 16; 32; 64]\n");
+                  "ERROR -> Invalid size, %ld is not in the valid sizes %d, "
+                  "%d, %d, %d, %d!\n",
+                  grid_size, 4, 8, 16, 32, 64);
           exit(EXIT_FAILURE);
+        } else {
+          sw_if.grid_size_tg = grid_size;
         }
+
+        // Initialize random number generator for use in grid generation
+        srand(time(NULL));
 
         // TESTS SUCCEDED :: validate generator mode
         sw_if.mode = GENERATOR;
@@ -144,7 +170,26 @@ int main(int argc, char *argv[]) {
   }
 
   if (sw_if.mode == SOLVER) {
+    t_grid g;
+    g.size = sw_if.grid_size_tg;
+
+    file_parser(&g, argv[optind]);
+    print_grid(&g, stdout);
+    printf("consistent : %d\n", is_consistent(&g));
+    grid_free(&g);
     fclose(sw_if.in_grid_s);
+  } else if (sw_if.mode == GENERATOR) {
+    t_grid g;
+    g.size = sw_if.grid_size_tg;
+
+    printf("GENERATOR MODE\n");
+    generate_grid(&g, sw_if.grid_start);
+    if (!is_consistent(&g)) {
+      printf("ERROR: Generated grid is not consistent\n");
+      exit(1);
+    }
+    print_grid(&g, stdout);
+    grid_free(&g);
   }
 
   return EXIT_SUCCESS;
@@ -176,6 +221,7 @@ void init_software_infos(software_infos *si) {
   si->mode = SOLVER;
 
   si->grid_size_tg = 0;
+  si->grid_start = N;
   si->uniq_sol_grid = false;
 
   si->all_sol = false;
@@ -190,19 +236,18 @@ void grid_allocate(t_grid *g, int size) {
   g->size = size;
   g->grid = malloc(g->size * sizeof(char *));
   for (int i = 0; i < g->size; i++) {
-    g->grid[i] = malloc(g->size * sizeof(char));
+    g->grid[i] = calloc(g->size, sizeof(char));
   }
 
   // Initialize grid with '_'
   for (int i = 0; i < g->size; i++) {
     for (int j = 0; j < g->size; j++) {
-      g->grid[i][j] = '_';
+      set_cell(i, j, g, '_');
     }
   }
 }
 
 void grid_free(t_grid *g) {
-  puts("grid_free");
   for (int i = 0; i < g->size; i++) {
     free(g->grid[i]);
   }
@@ -227,7 +272,7 @@ void print_grid(t_grid *g, FILE *fd) {
 }
 
 bool check_char(const char c) {
-  if (c != '0' && c != '1' && c != '_') {
+  if (c != '0' || c != '1' || c != '_') {
     return false;
   }
   return true;
