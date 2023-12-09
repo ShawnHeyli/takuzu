@@ -12,6 +12,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "grid.h"
+
 software_info sw;
 
 int main(int argc, char *argv[]) {
