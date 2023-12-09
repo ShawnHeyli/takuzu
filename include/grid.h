@@ -27,5 +27,5 @@ bool apply_heuristic2(t_grid *g);
 bool sub_heuristic2(t_grid *g, char *line);
 
 void apply_heuristics(t_grid *g);
-void generate_grid(t_grid *g, long number);
+void generate_grid(t_grid *g, int percentage_fill);
 #endif

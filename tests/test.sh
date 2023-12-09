@@ -6,19 +6,23 @@ takuzu="$root_path/bin/takuzu"
 takuzu_debug="$root_path/bin/takuzu_debug"
 log_file="/tmp/valgrind_takuzu"
 
-# This script is used to test the functionality of the program.
-
 normal_test=(
   "-h"
   "tests/valid_grids/grid_00"
   "tests/valid_grids/grid_consistent"
   "tests/valid_grids/grid_valid"
+  "-g 8"
+  "-g 16 -N 10"
 )
 
 failure_tests=(
   "tests/invalid_grids/grid_invalid_1"
   "tests/invalid_grids/grid_invalid_2"
   "tests/invalid_grids/grid_invalid_3"
+  "tests/valid_grids/grid_00 -g 64"
+  "-g 0"
+  "-g 6"
+  "-g 214748364772391" # Bigger than INT_MAX
 )
 
 success_tests=()

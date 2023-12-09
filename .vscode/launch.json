@@ -6,7 +6,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/bin/takuzu_debug",
       "args": [
-        "tests/invalid_grids/grid_invalid_2"
+        "-g 4",
+        "-N 50"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

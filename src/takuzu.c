@@ -14,10 +14,23 @@
 
 #include "grid.h"
 
-software_info sw;
+software_info sw = {
+    .mode = NONE,
+    .output_file = NULL,  // Can't be initialized to stdout because it is not a
+                          // constant, but it is initialized in main
+                          // (which is called before any use)
+
+    .grid = NULL,
+    .grid_size = 0,
+    .percentage_fill = 20,
+
+    .all = false,
+    .unique = false,
+    .verbose = false,
+};
 
 int main(int argc, char *argv[]) {
-  init_software_infos(&sw);
+  sw.output_file = stdout;
   t_grid grid;
   sw.grid = &grid;
 
@@ -31,18 +44,17 @@ int main(int argc, char *argv[]) {
       errx(EXIT_FAILURE, "no input file to solve!");
     }
     file_parser(sw.grid, argv[optind]);
-  }
-
-  if (sw.mode == GENERATOR) {
+  } else if (sw.mode == GENERATOR) {
     if (sw.verbose) {
       printf("Generator mode detected\n");
-      printf("Generating grid of size %d\n", sw.grid_size);
     }
-    grid_allocate(sw.grid, sw.grid_size);
-    // grid_generate(sw.grid, sw.grid_size, sw.unique);
+
+    generate_grid(sw.grid, sw.percentage_fill);
+    grid_print(sw.grid, sw.output_file);
   }
 
   grid_free(sw.grid);
+  return EXIT_SUCCESS;
 }
 
 // Helper function
@@ -97,23 +109,11 @@ void grid_print(const t_grid *g, FILE *fd) {
   }
 }
 // Check if a character is a valid takuzu grid character
-bool check_char(const char c) {
+bool check_char(char c) {
   if (c == '0' || c == '1' || c == '_') {
     return true;
   }
   return false;
-}
-
-void init_software_infos(software_info *si) {
-  si->mode = SOLVER;
-  si->output_file = stdout;
-
-  si->grid = NULL;
-  si->grid_size = 0;
-
-  si->all = false;
-  si->unique = false;
-  si->verbose = false;
 }
 
 // The parser must be able to read a grid of size 4 to 64 with only one scan of
@@ -241,18 +241,20 @@ void parse_args(int argc, char **argv) {
       {"all", no_argument, 0, 'a'},
       {"generate", optional_argument, 0, 'g'},
       {"output", required_argument, 0, 'o'},
+      {"number", required_argument, 0, 'N'},
       {"unique", no_argument, 0, 'u'},
       {"verbose", no_argument, 0, 'v'},
       {"help", no_argument, 0, 'h'},
       {0, 0, 0, 0}};
 
   int opt;
-  while ((opt = getopt_long(argc, argv, "ag:o:uvh", parse_structure, NULL)) !=
+
+  while ((opt = getopt_long(argc, argv, "ag:N:o:uvh", parse_structure, NULL)) !=
          -1) {
     switch (opt) {
       case 'a':
         if (sw.mode == GENERATOR) {
-          errx(EXIT_FAILURE, "invalid option combination!");
+          errx(EXIT_FAILURE, "ERRROR -> invalid option combination!");
         }
 
         sw.mode = SOLVER;
@@ -261,51 +263,97 @@ void parse_args(int argc, char **argv) {
 
       case 'g':
         if (sw.mode == SOLVER) {
-          errx(EXIT_FAILURE, "invalid option combination!");
+          errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
         }
 
         sw.mode = GENERATOR;
         if (optarg != NULL) {
-          sw.grid_size = atoi(optarg);
-          if (sw.grid_size < MIN_GRID_SIZE || sw.grid_size > MAX_GRID_SIZE) {
-            errx(EXIT_FAILURE, "invalid grid size!");
+          int size = atoi(optarg);
+          if (is_valid_size(size) == false) {
+            fprintf(stderr,
+                    "ERROR -> Invalid size, %d is not in the valid sizes %d, "
+                    "%d, %d, %d, %d!\n",
+                    size, 4, 8, 16, 32, 64);
+            exit(EXIT_FAILURE);
           }
+          // Initialize random number generator for use in grid generation
+          srand(time(NULL));
+          sw.grid_size = size;
         } else {
+          // Default size
           sw.grid_size = 8;
         }
         break;
 
-      case 'o':
-        // Check if file is accessible
-        if (access(optarg, F_OK) != -1) {
-          sw.output_file = fopen(optarg, "w");
-        } else {
-          errx(EXIT_FAILURE, "cannot open file!");
-        }
-        break;
-
-      case 'u':
+      case 'N':
         if (sw.mode == SOLVER) {
-          errx(EXIT_FAILURE, "invalid option combination!");
+          errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
         }
-
-        sw.mode = GENERATOR;
-        sw.unique = true;
+        sw.percentage_fill = atoi(optarg);
         break;
 
-      case 'v':
-        sw.verbose = true;
+      case 'o': {
+        FILE *fd = fopen(optarg, "r");
+        if (fd == NULL) {
+          fclose(fd);
+          switch (errno) {
+            case ENOENT:
+              fprintf(stderr, "ERROR -> file '%s' not found!\n", optarg);
+              exit(EXIT_FAILURE);
+              break;
+            case EACCES:
+              fprintf(stderr, "ERROR -> file '%s' not accessible!\n", optarg);
+              exit(EXIT_FAILURE);
+              break;
+            default:
+              fprintf(stderr, "ERROR -> Unknow error with '%s'!\n", optarg);
+              exit(EXIT_FAILURE);
+          }
+        } else {
+          sw.output_file = fd;
+        }
         break;
 
-      case 'h':
-        usage();
-        exit(EXIT_SUCCESS);
-        break;
+        case 'u':
+          if (sw.mode == SOLVER) {
+            errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
+          }
 
-      default:
-        errx(EXIT_FAILURE, "invalid option!");
-        break;
+          sw.unique = true;
+          break;
+
+        case 'v':
+          sw.verbose = true;
+          break;
+
+        case 'h':
+          usage();
+          exit(EXIT_SUCCESS);
+          break;
+
+        default:
+          errx(EXIT_FAILURE, "ERROR -> invalid option!");
+          break;
+      }
     }
+  }
+
+  if (argv[optind] == NULL && sw.mode == SOLVER) {
+    errx(EXIT_FAILURE, "ERROR -> no input file to solve!");
+  } else if (argv[optind] != NULL && sw.mode == GENERATOR) {
+    printf("%s\n", argv[optind]);
+    errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
+  } else if (sw.unique && (sw.mode != GENERATOR)) {
+    errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
+  }
+
+  if (argv[optind] != NULL && sw.mode == NONE) {
+    sw.mode = SOLVER;
+  }
+
+  // Failsafe
+  if (sw.mode == NONE) {
+    errx(EXIT_FAILURE, "ERROR -> no mode selected!");
   }
 }
 

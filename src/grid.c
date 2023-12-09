@@ -27,11 +27,21 @@ void grid_copy(t_grid *gs, t_grid *gd) {
   }
 }
 
-char get_cell(int i, int j, t_grid *g) { return g->grid[i][j]; }
+char get_cell(int i, int j, t_grid *g) {
+  // Out of bounds
+  if (i < 0 || i >= g->size || j < 0 || j >= g->size) {
+    fprintf(stderr,
+            "ERROR -> tried to get a cell out of bounds (%d, %d) in a grid "
+            "of size %d\n",
+            i, j, g->size);
+    exit(EXIT_FAILURE);
+  }
+  return g->grid[i][j];
+}
 
 void set_cell(int i, int j, t_grid *g, char v) {
   // Invalid character
-  if (check_char(v)) {
+  if (!check_char(v)) {
     fprintf(stderr,
             "ERROR -> tried to insert an invalid character ('%c') in a grid \n",
             v);
@@ -172,3 +182,147 @@ bool is_grid_full(t_grid *g) {
 // returns true if a grid is full (no empty cells) and meets all the
 // constraints of the Takuzu
 bool is_valid(t_grid *g) { return is_consistent(g) && is_grid_full(g); }
+
+// Heuristic 1 : If a row (respectively column) has two consecutive zeroes, the
+// cells before/after must be ones. The same heuristics applies to ones as well.
+bool apply_heuristic1(t_grid *g) {
+  bool changed = false;
+  for (int i = 0; i < g->size; i++) {
+    char *row = get_row(i, g);
+    char *col = get_col(i, g);
+
+    // The || is to not overwrite the value of changed
+    changed = sub_heuristic1(g, row) || changed;
+    changed = sub_heuristic1(g, col) || changed;
+
+    free(row);
+    free(col);
+  }
+  return changed;
+}
+
+// heuristic 1 agnostic to row/column
+bool sub_heuristic1(t_grid *g, char *line) {
+  bool changed = false;
+  for (int j = 0; j < g->size - 2; j++) {
+    // Check for consecutive zeros
+    if (line[j] == '0' && line[j + 1] == '0') {
+      // Change cell after the two consecutive zeros
+      if (j > 0 && line[j - 1] == '_') {
+        line[j - 1] = '1';
+        changed = true;
+      }
+      // Change cell before the two consecutive zeros
+      if (j < g->size - 3 && line[j + 2] == '_') {
+        line[j + 2] = '1';
+        changed = true;
+      }
+    }
+    // Check for consecutive ones
+    if (line[j] == '1' && line[j + 1] == '1') {
+      // Change cell after the two consecutive ones
+      if (j > 0 && line[j - 1] == '_') {
+        line[j - 1] = '0';
+        changed = true;
+      }
+      // Change cell before the two consecutive ones
+      if (j < g->size - 3 && line[j + 2] == '_') {
+        line[j + 2] = '0';
+        changed = true;
+      }
+    }
+  }
+  return changed;
+}
+
+// Heuristic 2 : If a row (respectively column) has all its zeros filled, the
+// remaining empty cells are ones. The same heuristics applies to ones
+bool apply_heuristic2(t_grid *g) {
+  bool changed = false;
+  for (int i = 0; i < g->size; i++) {
+    char *row = get_row(i, g);
+    char *col = get_col(i, g);
+
+    changed = sub_heuristic2(g, row) || changed;
+    changed = sub_heuristic2(g, col) || changed;
+
+    free(row);
+    free(col);
+  }
+  return changed;
+}
+
+// heuristic 2 agnostic to row/col
+bool sub_heuristic2(t_grid *g, char *line) {
+  int zeros = 0;
+  int ones = 0;
+  bool changed = false;
+  for (int j = 0; j < g->size; j++) {
+    if (line[j] == '0') {
+      zeros++;
+    } else if (line[j] == '1') {
+      ones++;
+    }
+  }
+  if (zeros == g->size / 2) {
+    for (int j = 0; j < g->size; j++) {
+      if (line[j] == '_') {
+        line[j] = '1';
+        changed = true;
+      }
+    }
+  }
+  if (ones == g->size / 2) {
+    for (int j = 0; j < g->size; j++) {
+      if (line[j] == '_') {
+        line[j] = '0';
+        changed = true;
+      }
+    }
+  }
+  return changed;
+}
+
+void apply_heuristics(t_grid *g) {
+  bool changed = true;
+  while (changed) {
+    changed = apply_heuristic1(g) || apply_heuristic2(g);
+  }
+}
+
+void generate_grid(t_grid *g, int percentage_fill) {
+  if (sw.verbose) {
+    printf("Generating grid of size %d\n", g->size);
+  }
+
+  printf("size = %d\n", g->size);
+  grid_allocate(g, sw.grid_size);
+  // get the number of cells to fill from percentage
+  int cells_fill = (((g->size * g->size) * percentage_fill) / 100);
+  printf("cells_fill = %d\n", cells_fill);
+  printf("percentage_fill = %d\n", percentage_fill);
+  // fill the grid with n 0 and 1 at random
+  while (cells_fill > 0) {
+    int i = rand() % g->size;
+    int j = rand() % g->size;
+    // Rand was inserted in the ifs but behaved weirdly, it's doing fine here
+    int random = rand() % 2;
+    // If a cell is already filled, we retry somewhere else
+    if (get_cell(i, j, g) == '_') {
+      if (random == 0) {
+        set_cell(i, j, g, '0');
+      } else if (random % 2 == 1) {
+        set_cell(i, j, g, '1');
+      }
+      cells_fill--;
+    }
+  }
+
+  if (!is_consistent(g)) {
+    if (sw.verbose) {
+      printf("Grid is not consistent, retrying...\n");
+    }
+    grid_free(g);
+    generate_grid(g, percentage_fill);
+  }
+}
