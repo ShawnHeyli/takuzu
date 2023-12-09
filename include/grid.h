@@ -8,7 +8,7 @@
 #include "takuzu.h"
 
 void grid_copy(t_grid *gs, t_grid *gd);
-bool set_cell(int i, int j, t_grid *g, char v);
+void set_cell(int i, int j, t_grid *g, char v);
 char get_cell(int i, int j, t_grid *g);
 
 bool is_row_consistent(int row, t_grid *g);

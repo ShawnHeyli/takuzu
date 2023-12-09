@@ -29,7 +29,7 @@ void grid_copy(t_grid *gs, t_grid *gd) {
 
 char get_cell(int i, int j, t_grid *g) { return g->grid[i][j]; }
 
-bool set_cell(int i, int j, t_grid *g, char v) {
+void set_cell(int i, int j, t_grid *g, char v) {
   // Invalid character
   if (check_char(v)) {
     fprintf(stderr,
@@ -46,12 +46,7 @@ bool set_cell(int i, int j, t_grid *g, char v) {
     exit(EXIT_FAILURE);
   }
 
-  if (get_cell(i, j, g) == v) {
-    return false;
-  } else {
-    g->grid[i][j] = v;
-    return true;
-  }
+  g->grid[i][j] = v;
 }
 
 char *get_row(int row_index, t_grid *g) {
