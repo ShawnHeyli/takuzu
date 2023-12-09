@@ -6,6 +6,12 @@ SRC_TAKUZU_DIR := src
 all:
 	make -f $(SRC_TAKUZU_DIR)/Makefile all
 
+test:
+	make -f $(SRC_TAKUZU_DIR)/Makefile test
+
+test_debug:
+	make -f $(SRC_TAKUZU_DIR)/Makefile test_debug
+
 # to clean object and executable files
 clean:
 	make -f $(SRC_TAKUZU_DIR)/Makefile clean

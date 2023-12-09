@@ -9,29 +9,7 @@
 #define MIN_GRID_SIZE 4
 #define MAX_GRID_SIZE 64
 
-/* ---------------------------------------------------------------------------------------------
- */
-// ----------------------------------- STRUCTURES AND ENUMS
-// ------------------------------------ //
-/* ---------------------------------------------------------------------------------------------
- */
-
 typedef enum { SOLVER, GENERATOR } modes;
-
-typedef struct {
-  modes mode;  // software mode
-
-  uint8_t grid_size_tg;  // size of grid to generate
-  uint8_t grid_start;    // numbers of 0 and 1 in the generated grid
-  bool uniq_sol_grid;    // generate grid with unique solution
-
-  bool all_sol;     // search for all solutions
-  FILE *in_grid_s;  // stream that contains grid to solve
-
-  FILE *out_s;   // stream for print found solutions or grid generate
-  bool verbose;  // verbose output
-
-} software_infos;
 
 // Comment lines: all characters in a line that follow a ‘#’ are ignored until
 // ‘\n’ or EO
@@ -45,22 +23,27 @@ typedef struct {
   char **grid;  // Pointer to the grid
 } t_grid;
 
-/* ---------------------------------------------------------------------------------------------
- */
-// ----------------------------- DECLARATION OF MAIN UTIL FUNCTIONS
-// ---------------------------- //
-/* ---------------------------------------------------------------------------------------------
- */
+typedef struct {
+  modes mode;         // solver or generator
+  FILE *output_file;  // output file
+
+  t_grid *grid;   // grid to solve
+  int grid_size;  // size of the grid
+
+  bool all;      // all solutions
+  bool unique;   // unique solution
+  bool verbose;  // verbose output
+
+} software_info;
 
 void usage();
-
-void init_software_infos(software_infos *);
+void parse_args(int argc, char **argv);
 
 void grid_allocate(t_grid *g, int size);
-void grid_free(t_grid *g);
-void print_grid(t_grid *g, FILE *fd);
-bool check_char(const char c);
-
+void grid_free(const t_grid *g);
+void init_software_infos(software_info *si);
+void grid_print(const t_grid *g, FILE *fd);
 void file_parser(t_grid *grid, char *filename);
+bool check_char(const char c);
 
 #endif /* TAKUZU_H */

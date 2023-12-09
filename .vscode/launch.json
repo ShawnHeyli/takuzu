@@ -1,18 +1,12 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
   "configurations": [
     {
-      "name": "all valid grid",
-      "preLaunchTask": "Run make all",
+      "name": "invalid grid",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bin/takuzu_debug",
       "args": [
-        "-a",
-        "test/grid_valid"
+        "tests/invalid_grids/grid_invalid_2"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -32,63 +26,5 @@
         }
       ]
     },
-    {
-      "name": "all consistent grid",
-      "preLaunchTask": "Run make all",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/bin/takuzu_debug",
-      "args": [
-        "-a",
-        "test/grid_consistent"
-      ],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set Disassembly Flavor to Intel",
-          "text": "-gdb-set disassembly-flavor intel",
-          "ignoreFailures": true
-        }
-      ]
-    },
-    {
-      "name": "generate 16x16 grid",
-      "preLaunchTask": "Run make all",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/bin/takuzu_debug",
-      "args": [
-        "-g",
-        "16",
-        "--number",
-        "8"
-      ],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set Disassembly Flavor to Intel",
-          "text": "-gdb-set disassembly-flavor intel",
-          "ignoreFailures": true
-        }
-      ]
-    }
   ]
 }

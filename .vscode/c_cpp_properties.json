@@ -8,11 +8,19 @@
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
             "intelliSenseMode": "linux-gcc-x64",
-            "cppStandard": "c++17",
-            "cStandard": "c17",
+            "cStandard": "c99",
             "compilerArgs": [
                 "-Wall",
-                "-pedantic"
+                "-Wextra",
+                "-Wshadow",
+                "-Wstrict-prototypes",
+                "-Wswitch-default",
+                "-Wconversion",
+                "-Wunreachable-code",
+                "-pedantic",
+                "-lm",
+                "-lrt",
+                "-Iinclude"
             ]
         }
     ],

@@ -1,0 +1,9 @@
+{
+  "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
+    "clang-analyzer-core.UndefinedBinaryOperatorResult"
+  ],
+  "files.associations": {
+    "stdint.h": "c",
+    "stdbool.h": "c"
+  }
+}

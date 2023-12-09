@@ -1,5 +1,6 @@
 #include "takuzu.h"
 
+#include <err.h>
 #include <errno.h>
 #include <getopt.h>
 #include <limits.h>
@@ -11,230 +12,54 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "grid.h"
-
-#define N 4
-
-/* ---------------------------------------------------------------------------------------------
- */
-// --------------------------------------- MAIN FUNCTION
-// --------------------------------------- //
-/* ---------------------------------------------------------------------------------------------
- */
+software_info sw;
 
 int main(int argc, char *argv[]) {
-  int opt;
-  software_infos sw_if;
+  init_software_infos(&sw);
+  t_grid grid;
+  sw.grid = &grid;
 
-  init_software_infos(&sw_if);
+  parse_args(argc, argv);
 
-  static struct option long_opts[] = {{"all", no_argument, 0, 'a'},
-                                      {"generate", required_argument, 0, 'g'},
-                                      {"number", required_argument, 0, 'N'},
-                                      {"ouput", required_argument, 0, 'o'},
-                                      {"unique", no_argument, 0, 'u'},
-                                      {"verbose", no_argument, 0, 'v'},
-                                      {"help", no_argument, 0, 'h'},
-                                      {0, 0, 0, 0}};
-
-  while ((opt = getopt_long(argc, argv, "ag:o:uvh", long_opts, NULL)) != -1) {
-    switch (opt) {
-      case 'a':
-        if (sw_if.mode == GENERATOR) {
-          fprintf(
-              stderr,
-              "ERROR -> unauthorized -a, --all option in GENERATOR mode!\n");
-          exit(EXIT_FAILURE);
-        }
-        sw_if.all_sol = true;
-
-        // Take file as input
-        if (!argv[optind]) {
-          fprintf(stderr, "ERROR -> no input file to solve!\n");
-          exit(EXIT_FAILURE);
-        }
-
-        // The only mode available for -a
-        sw_if.mode = SOLVER;
-        break;
-
-      case 'u':
-        if (sw_if.mode == SOLVER) {
-          fprintf(
-              stderr,
-              "ERROR -> unauthorized -u, --unique option in SOLVER mode!\n");
-          exit(EXIT_FAILURE);
-        }
-        sw_if.uniq_sol_grid = true;
-        break;
-
-      // Number of both 0 and 1 in the entire generated grid
-      case 'N':
-        if (sw_if.mode == SOLVER) {
-          fprintf(
-              stderr,
-              "ERROR -> unauthorized -N, --number option in SOLVER mode!\n");
-          exit(EXIT_FAILURE);
-        }
-
-        // Converting optarg (string) to long integer
-        long number = strtol(optarg, NULL, 10);
-        if (number == LONG_MAX || number == LONG_MIN) {
-          fprintf(stderr, "ERROR -> '%s' ", optarg);
-          perror("Problem with args");
-          exit(EXIT_FAILURE);
-        }
-
-        sw_if.grid_start = number;
-        break;
-
-      case 'g':  // Option for generate grid of optarg*optarg size
-        if (sw_if.all_sol) {
-          fprintf(
-              stderr,
-              "ERROR -> unauthorized -a, --all option in GENERATOR mode!\n");
-          exit(EXIT_FAILURE);
-        }
-
-        // Converting optarg (string) to long integer
-        long grid_size = strtol(optarg, NULL, 10);
-        if (grid_size == LONG_MAX || grid_size == LONG_MIN) {
-          fprintf(stderr, "ERROR -> '%s' ", optarg);
-          perror("Problem with args");
-          exit(EXIT_FAILURE);
-        }
-
-        // Check if given number is valid
-        int allowed_sizes[5] = {4, 8, 16, 32, 64};
-        bool valid_size = false;
-        for (int i = 0; i < 5; i++) {
-          if (grid_size == allowed_sizes[i]) {
-            valid_size = true;
-            break;
-          }
-        }
-
-        if (valid_size == false) {
-          fprintf(stderr,
-                  "ERROR -> Invalid size, %ld is not in the valid sizes %d, "
-                  "%d, %d, %d, %d!\n",
-                  grid_size, 4, 8, 16, 32, 64);
-          exit(EXIT_FAILURE);
-        } else {
-          sw_if.grid_size_tg = grid_size;
-        }
-
-        // Initialize random number generator for use in grid generation
-        srand(time(NULL));
-
-        // TESTS SUCCEDED :: validate generator mode
-        sw_if.mode = GENERATOR;
-        break;
-
-      case 'o':
-        sw_if.out_s = fopen(optarg, "r");
-        if (sw_if.out_s == NULL) {
-          fprintf(stderr, "ERROR -> '%s' ", optarg);
-          perror("Problem with args");
-          exit(EXIT_FAILURE);
-        }
-        break;
-
-      case 'v':
-        sw_if.verbose = true;
-        break;
-
-      case 'h':
-        usage();
+  if (sw.mode == SOLVER) {
+    if (sw.verbose) {
+      printf("Solver mode detected\n");
     }
+    if (argv[optind] == NULL) {
+      errx(EXIT_FAILURE, "no input file to solve!");
+    }
+    file_parser(sw.grid, argv[optind]);
   }
 
-  if (sw_if.mode == SOLVER) {
-    if (!argv[optind]) {
-      fprintf(stderr, "ERROR -> no input file to solve!\n");
-      exit(EXIT_FAILURE);
+  if (sw.mode == GENERATOR) {
+    if (sw.verbose) {
+      printf("Generator mode detected\n");
+      printf("Generating grid of size %d\n", sw.grid_size);
     }
-
-    sw_if.in_grid_s = fopen(argv[optind], "r");
-    if (!sw_if.in_grid_s) {
-      fprintf(stderr, "ERROR -> '%s' ", argv[optind]);
-      perror("Problem with args");
-      exit(EXIT_FAILURE);
-    }
+    grid_allocate(sw.grid, sw.grid_size);
+    // grid_generate(sw.grid, sw.grid_size, sw.unique);
   }
 
-  // CLOSING OPEN STREAMS
-
-  if (sw_if.out_s != stdout) {
-    fclose(sw_if.out_s);
-  }
-
-  if (sw_if.mode == SOLVER) {
-    t_grid g;
-    g.size = sw_if.grid_size_tg;
-
-    file_parser(&g, argv[optind]);
-    print_grid(&g, stdout);
-    printf("consistent : %d\n", is_consistent(&g));
-    grid_free(&g);
-    fclose(sw_if.in_grid_s);
-  } else if (sw_if.mode == GENERATOR) {
-    t_grid g;
-    g.size = sw_if.grid_size_tg;
-
-    printf("GENERATOR MODE\n");
-    generate_grid(&g, sw_if.grid_start);
-    if (!is_consistent(&g)) {
-      printf("ERROR: Generated grid is not consistent\n");
-      exit(1);
-    }
-    print_grid(&g, stdout);
-    grid_free(&g);
-  }
-
-  return EXIT_SUCCESS;
+  grid_free(sw.grid);
 }
 
-/* ---------------------------------------------------------------------------------------------
- */
-// ------------------------------- BODY OF MAIN UTIL FUNCTIONS
-// -------------------------------- //
-/* ---------------------------------------------------------------------------------------------
- */
-
-void usage() {
-  printf("Usage :takuzu [-a|-o FILE|-v|-h] FILE...\n");
-  printf("takuzu -g[SIZE] [-u|-o FILE|-v|-h]\n\n");
-  printf(
-      "Solve or generate takuzu grids of size: 4, 8 16, 32, 64\n\
-	  -a, --all search for all possible solutions\n\
-	  -g[N], --generate[=N] generate a grid of size NxN (default:8)\n\
-	  -o FILE, --output FILE write output to FILE\n\
-	  -u, --unique generate a grid with unique solution\n\
-	  -v, --verbose verbose output\n\
-	  -h, --help display this help and exit\n");
-  fflush(stdout);
-  exit(EXIT_SUCCESS);
+// Helper function
+int is_valid_size(int size) {
+  if (size == 4 || size == 8 || size == 16 || size == 32 || size == 64) {
+    return true;
+  }
+  return false;
 }
 
-void init_software_infos(software_infos *si) {
-  si->mode = SOLVER;
-
-  si->grid_size_tg = 0;
-  si->grid_start = N;
-  si->uniq_sol_grid = false;
-
-  si->all_sol = false;
-  si->in_grid_s = NULL;
-
-  si->out_s = stdout;
-  si->verbose = false;
-}
-
-// size : number of elements in the whole grid
+// Allocate memory for a t_grid structure
+// Will exit the program if the size is invalid
 void grid_allocate(t_grid *g, int size) {
+  if (is_valid_size(size) == false) {
+    errx(EXIT_FAILURE, "invalid grid size for allocation !");
+  }
+
   g->size = size;
-  g->grid = malloc(g->size * sizeof(char *));
+  g->grid = calloc(g->size, sizeof(char *));
   for (int i = 0; i < g->size; i++) {
     g->grid[i] = calloc(g->size, sizeof(char));
   }
@@ -242,54 +67,74 @@ void grid_allocate(t_grid *g, int size) {
   // Initialize grid with '_'
   for (int i = 0; i < g->size; i++) {
     for (int j = 0; j < g->size; j++) {
-      set_cell(i, j, g, '_');
+      g->grid[i][j] = '_';
     }
   }
 }
 
-void grid_free(t_grid *g) {
+// Free memory allocated for a t_grid structure
+void grid_free(const t_grid *g) {
   for (int i = 0; i < g->size; i++) {
     free(g->grid[i]);
   }
   free(g->grid);
 }
 
-// Example of valid grid:
-// 0 _ _ _ _ _
-// 0 1 1 _ _ _
-// _ _ _ _ _ _
-// _ _ 0 _ _ _
-// 1 _ _ _ _ _
-// _ 0 _ _ _ _
-void print_grid(t_grid *g, FILE *fd) {
-  puts("print_grid");
+// Prints a grid to sw.output_file
+// (stdout if no -o option has been given)
+void grid_print(const t_grid *g, FILE *fd) {
   for (int i = 0; i < g->size; i++) {
-    for (int j = 0; j < g->size; j++) {
-      fprintf(fd, "%c ", g->grid[i][j]);
+    // Ignore comment lines
+    if (g->grid[i][0] == '#') {
+      continue;
     }
-    fputc('\n', fd);
+    for (int j = 0; j < g->size; j++) {
+      fprintf(fd, "%c", g->grid[i][j]);
+    }
+    fprintf(fd, "\n");
   }
 }
-
+// Check if a character is a valid takuzu grid character
 bool check_char(const char c) {
-  if (c != '0' || c != '1' || c != '_') {
-    return false;
+  if (c == '0' || c == '1' || c == '_') {
+    return true;
   }
-  return true;
+  return false;
 }
 
+void init_software_infos(software_info *si) {
+  si->mode = SOLVER;
+  si->output_file = stdout;
+
+  si->grid = NULL;
+  si->grid_size = 0;
+
+  si->all = false;
+  si->unique = false;
+  si->verbose = false;
+}
+
+// The parser must be able to read a grid of size 4 to 64 with only one scan of
+// the file. The scanner has
+// to be as robust as possible when a user provides an incorrect grid
+//    file.A meaningful error message must be issued in these situations,
+//    all dynamically allocated memory has to be freed and the program has to
+//        stop and return EXIT_FAILURE
 void file_parser(t_grid *grid, char *filename) {
-  puts("file_parser");
-  int allowed_sizes[5] = {4, 8, 16, 32, 64};
+  if (sw.verbose) {
+    printf("Parsing file: %s\n", filename);
+  }
 
   FILE *fd = fopen(filename, "r");
   if (fd == NULL) {
     switch (errno) {
       case ENOENT:
         fprintf(stderr, "ERROR -> file '%s' not found!\n", filename);
+        exit(EXIT_FAILURE);
         break;
       case EACCES:
         fprintf(stderr, "ERROR -> file '%s' not accessible!\n", filename);
+        exit(EXIT_FAILURE);
         break;
       default:
         fprintf(stderr, "ERROR -> Unknow error with '%s'!\n", filename);
@@ -301,17 +146,21 @@ void file_parser(t_grid *grid, char *filename) {
   char line[MAX_GRID_SIZE];
   int lineSize = 0;
 
-  // Read first line & skip comment lines along the way
+  // Read the first line to get the grid size
   while ((read = fgetc(fd)) != '\n') {
     switch (read) {
-      // Comment line
       case '#':
         while ((read = fgetc(fd)) != '\n') {
-          // ignore and skip
+          if (read == EOF) {
+            fclose(fd);
+            fprintf(stderr, "ERROR -> empty file!\n");
+            exit(EXIT_FAILURE);
+          }
         }
         break;
 
       case EOF:
+        fclose(fd);
         fprintf(stderr, "ERROR -> empty file!\n");
         exit(EXIT_FAILURE);
         break;
@@ -324,6 +173,7 @@ void file_parser(t_grid *grid, char *filename) {
         } else if (read == ' ' || read == '\t') {
           // ignore and skip
         } else {
+          fclose(fd);
           fprintf(stderr, "ERROR -> invalid character!\n");
           exit(EXIT_FAILURE);
         }
@@ -331,15 +181,7 @@ void file_parser(t_grid *grid, char *filename) {
     }
   }
 
-  // Check first line size is in allowed_sizes
-  bool valid_size = false;
-  for (int i = 0; i < 5; i++) {
-    if (lineSize == allowed_sizes[i]) {
-      valid_size = true;
-      break;
-    }
-  }
-  if (valid_size == false) {
+  if (is_valid_size(lineSize) == false) {
     fprintf(stderr,
             "ERROR -> Invalid size, %d is not in the valid sizes %d, %d, %d, "
             "%d, %d!\n",
@@ -361,6 +203,8 @@ void file_parser(t_grid *grid, char *filename) {
     if (read == '\n') {
       // not enough chars
       if (currentColumn != lineSize) {
+        grid_free(grid);
+        fclose(fd);
         fprintf(stderr, "ERROR -> inconsistent number of char by row!\n");
         exit(EXIT_FAILURE);
       }
@@ -369,6 +213,8 @@ void file_parser(t_grid *grid, char *filename) {
     } else {
       // too much chars
       if (currentColumn == lineSize) {
+        grid_free(grid);
+        fclose(fd);
         fprintf(stderr, "ERROR -> inconsistent number of char by row!\n");
         exit(EXIT_FAILURE);
       }
@@ -378,10 +224,97 @@ void file_parser(t_grid *grid, char *filename) {
       } else if (read == ' ' || read == '\t') {
         // ignore and skip
       } else {
+        grid_free(grid);
+        fclose(fd);
         fprintf(stderr, "ERROR -> invalid character!\n");
         exit(EXIT_FAILURE);
       }
     }
   }
   fclose(fd);
+}
+
+void parse_args(int argc, char **argv) {
+  static struct option parse_structure[] = {
+      {"all", no_argument, 0, 'a'},
+      {"generate", optional_argument, 0, 'g'},
+      {"output", required_argument, 0, 'o'},
+      {"unique", no_argument, 0, 'u'},
+      {"verbose", no_argument, 0, 'v'},
+      {"help", no_argument, 0, 'h'},
+      {0, 0, 0, 0}};
+
+  int opt;
+  while ((opt = getopt_long(argc, argv, "ag:o:uvh", parse_structure, NULL)) !=
+         -1) {
+    switch (opt) {
+      case 'a':
+        if (sw.mode == GENERATOR) {
+          errx(EXIT_FAILURE, "invalid option combination!");
+        }
+
+        sw.mode = SOLVER;
+        sw.all = true;
+        break;
+
+      case 'g':
+        if (sw.mode == SOLVER) {
+          errx(EXIT_FAILURE, "invalid option combination!");
+        }
+
+        sw.mode = GENERATOR;
+        if (optarg != NULL) {
+          sw.grid_size = atoi(optarg);
+          if (sw.grid_size < MIN_GRID_SIZE || sw.grid_size > MAX_GRID_SIZE) {
+            errx(EXIT_FAILURE, "invalid grid size!");
+          }
+        } else {
+          sw.grid_size = 8;
+        }
+        break;
+
+      case 'o':
+        // Check if file is accessible
+        if (access(optarg, F_OK) != -1) {
+          sw.output_file = fopen(optarg, "w");
+        } else {
+          errx(EXIT_FAILURE, "cannot open file!");
+        }
+        break;
+
+      case 'u':
+        if (sw.mode == SOLVER) {
+          errx(EXIT_FAILURE, "invalid option combination!");
+        }
+
+        sw.mode = GENERATOR;
+        sw.unique = true;
+        break;
+
+      case 'v':
+        sw.verbose = true;
+        break;
+
+      case 'h':
+        usage();
+        exit(EXIT_SUCCESS);
+        break;
+
+      default:
+        errx(EXIT_FAILURE, "invalid option!");
+        break;
+    }
+  }
+}
+
+void usage() {
+  printf("Usage: takuzu [-a|-o FILE|-v|-h] FILE\n");
+  printf("       takuzu -g[SIZE] [-u|-o FILE|-v|-h]\n");
+  printf("Solve or generate takuzu grids of size: 4, 8 16, 32, 64\n");
+  printf("  -a, --all               search for all possible solutions\n");
+  printf("  -g[N], --generate[=N]   generate a grid of size NxN (default:8)\n");
+  printf("  -o FILE, --output FILE  write output to FILE\n");
+  printf("  -u, --unique            generate a grid with unique solution\n");
+  printf("  -v, --verbose           verbose output\n");
+  printf("  -h, --help              display this help and exit\n");
 }

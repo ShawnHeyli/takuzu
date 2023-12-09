@@ -1,25 +1,29 @@
 .PHONY: all clean help
 
 CC := gcc
-CFLAGS := -std=c17 -Wall -pedantic
-CPPFLAGS := -Iinclude -lm
+CFLAGS := -Wall -Werror -pedantic
+CPPFLAGS := -Iinclude
 LDFLAGS := 
 
 all: bin/takuzu bin/takuzu_debug
+
+test: bin/takuzu tests/test.sh
+	@tests/test.sh
+
+test_debug: bin/takuzu_debug tests/test.sh
+	@tests/test.sh debug
 
 clean:
 	rm -f bin/*
 	rm -f obj/*.o
 
 help:
-	@echo "make:\n"
-	@echo "Classic build of project\n\n"
-	@echo "make clean:\n"
-	@echo "Clean all the object files and all executable file\n\n"
-
+	@echo "This is a Makefile for takuzu game."
+	@echo "To compile the software, type 'make' or 'make all'."
+	@echo "To clean object and executable files, type 'make clean'."
 
 bin/takuzu: src/takuzu.c src/grid.c
 	$(CC) $^ $(CPPFLAGS) $(CFLAGS) -o $@
 
 bin/takuzu_debug: src/takuzu.c src/grid.c
-	$(CC) $^ $(CPPFLAGS) $(CFLAGS) -g -o $@
+	$(CC) $^ $(CPPFLAGS) $(CFLAGS) -ggdb3 -o $@
