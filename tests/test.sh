@@ -8,12 +8,15 @@ log_file="/tmp/valgrind_takuzu"
 
 normal_test=(
   "-h"
-  "tests/valid_grids/grid_00"
-  "tests/valid_grids/grid_consistent"
-  "tests/valid_grids/grid_valid"
+  "tests/solver/solved"
   "-g 8"
   "-g 16 -N 10"
   #"-N 10 -g 16" # Works manually but not in the script, -g is not recognized, don't know why
+  "tests/solver/heuristic"
+  "tests/solver/easy"
+  "tests/solver/medium"
+  "tests/solver/onesolution"
+  "tests/solver/severalsolutions"
 )
 
 failure_tests=(
@@ -24,6 +27,8 @@ failure_tests=(
   "-g 0"
   "-g 6"
   "-g 214748364772391" # Bigger than INT_MAX
+  "tests/solver/nosolution"
+  "tests/solver/invalid"
 )
 
 success_tests=()

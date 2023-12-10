@@ -6,8 +6,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/bin/takuzu_debug",
       "args": [
-        "-g 4",
-        "-N 50"
+        "tests/solver/easy",
+        "-v"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

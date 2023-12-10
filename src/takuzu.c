@@ -35,7 +35,10 @@ int main(int argc, char *argv[]) {
   sw.output_file = stdout;
   t_grid grid;
   sw.grid = &grid;
+  t_grid solution;
+  sw.solution = &solution;
 
+  srand(time(NULL));
   parse_args(argc, argv);
 
   if (sw.mode == SOLVER) {
@@ -47,10 +50,25 @@ int main(int argc, char *argv[]) {
     }
     file_parser(sw.grid, argv[optind]);
 
-    apply_heuristics(sw.grid);
+    if (sw.verbose) {
+      printf("Parsed grid:\n");
+      grid_print(sw.grid, stdout);
+    }
 
-    printf("Solved grid:\n");
-    grid_print(sw.grid, stdout);
+    sw.solution = grid_solver(sw.grid, mode);
+
+    if (sw.solution == NULL) {
+      grid_free(sw.solution);
+      grid_free(sw.grid);
+      return EXIT_FAILURE;
+
+    } else {
+      printf("Solution found:\n");
+      grid_print(sw.solution, stdout);
+      grid_free(sw.solution);
+      grid_free(sw.grid);
+      return EXIT_SUCCESS;
+    }
   } else if (sw.mode == GENERATOR) {
     if (sw.verbose) {
       printf("Generator mode detected\n");
@@ -62,6 +80,7 @@ int main(int argc, char *argv[]) {
   }
 
   grid_free(sw.grid);
+  grid_free(sw.solution);
   return EXIT_SUCCESS;
 }
 
@@ -286,8 +305,6 @@ void parse_args(int argc, char **argv) {
                     size, 4, 8, 16, 32, 64);
             exit(EXIT_FAILURE);
           }
-          // Initialize random number generator for use in grid generation
-          srand(time(NULL));
           sw.grid_size = size;
         } else {
           // Default size
