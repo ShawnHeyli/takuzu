@@ -35,8 +35,6 @@ int main(int argc, char *argv[]) {
   sw.output_file = stdout;
   t_grid grid;
   sw.grid = &grid;
-  t_grid solution;
-  sw.solution = &solution;
 
   srand(time(NULL));
   parse_args(argc, argv);
@@ -55,17 +53,17 @@ int main(int argc, char *argv[]) {
       grid_print(sw.grid, stdout);
     }
 
-    sw.solution = grid_solver(sw.grid, mode);
+    t_grid *solution = NULL;
+    solution = grid_solver(sw.grid, mode);
 
-    if (sw.solution == NULL) {
-      grid_free(sw.solution);
+    if (solution == NULL) {
+      grid_free(solution);
       grid_free(sw.grid);
       return EXIT_FAILURE;
-
     } else {
       printf("Solution found:\n");
-      grid_print(sw.solution, stdout);
-      grid_free(sw.solution);
+      grid_print(solution, sw.output_file);
+      grid_free(solution);
       grid_free(sw.grid);
       return EXIT_SUCCESS;
     }
@@ -80,7 +78,6 @@ int main(int argc, char *argv[]) {
   }
 
   grid_free(sw.grid);
-  grid_free(sw.solution);
   return EXIT_SUCCESS;
 }
 
@@ -115,6 +112,10 @@ void grid_allocate(t_grid *g, int size) {
 
 // Free memory allocated for a t_grid structure
 void grid_free(const t_grid *g) {
+  if (g == NULL || g->grid == NULL) {
+    return;
+  }
+
   for (int i = 0; i < g->size; i++) {
     free(g->grid[i]);
   }

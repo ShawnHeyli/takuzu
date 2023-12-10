@@ -301,18 +301,20 @@ t_grid *grid_solver(t_grid *grid, const t_mode mode) {
     printf("Solving grid...\n");
   }
 
-  if (is_valid(grid)) {
+  t_grid *solution = malloc(sizeof(t_grid));
+  grid_copy(grid, solution);
+
+  // We don't do this on grid because this leads to segfault in main
+  // when we try to solution and grid that both point to the same grid
+  if (is_valid(solution)) {
     if (sw.verbose) {
       printf("Grid is already solved\n");
     }
-    return grid;
+    return solution;
   }
 
   t_grid **solutions = malloc(sizeof(t_grid *));
   int nb_solutions = 0;
-
-  t_grid *solution = malloc(sizeof(t_grid));
-  grid_copy(grid, solution);
 
   sub_grid_solver(grid, solution, solutions, &nb_solutions);
 

@@ -21,7 +21,6 @@ typedef struct {
   FILE *output_file;  // output file
 
   t_grid *grid;         // grid to solve
-  t_grid *solution;     // solution grid
   int grid_size;        // size of the grid
   int percentage_fill;  // percentage of the grid to fill (GENERATOR mode)
 

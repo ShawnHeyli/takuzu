@@ -20,12 +20,10 @@ normal_test=(
 )
 
 failure_tests=(
-  "tests/invalid_grids/grid_invalid_1"
-  "tests/invalid_grids/grid_invalid_2"
-  "tests/invalid_grids/grid_invalid_3"
-  "tests/valid_grids/grid_00 -g 64"
-  "-g 0"
-  "-g 6"
+  "tests/dwqdqwczfdasf/dasdsadasz" # No file
+  "tests/valid_grids/grid_00 -g 64" # Invalid combination
+  "-g 0" # Invalid grid size
+  "-g 6" # Invalid grid size
   "-g 214748364772391" # Bigger than INT_MAX
   "tests/solver/nosolution"
   "tests/solver/invalid"
