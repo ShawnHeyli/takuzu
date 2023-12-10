@@ -22,9 +22,11 @@ bool is_consistent(t_grid *g);
 bool is_valid(t_grid *g);
 
 bool apply_heuristic1(t_grid *g);
-bool sub_heuristic1(t_grid *g, char *line);
+bool sub_heuristic1_rows(t_grid *g);
+bool sub_heuristic1_cols(t_grid *g);
 bool apply_heuristic2(t_grid *g);
-bool sub_heuristic2(t_grid *g, char *line);
+bool sub_heuristic2_rows(t_grid *g);
+bool sub_heuristic2_cols(t_grid *g);
 
 void apply_heuristics(t_grid *g);
 void generate_grid(t_grid *g, int percentage_fill);

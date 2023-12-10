@@ -13,6 +13,7 @@ normal_test=(
   "tests/valid_grids/grid_valid"
   "-g 8"
   "-g 16 -N 10"
+  #"-N 10 -g 16" # Works manually but not in the script, -g is not recognized, don't know why
 )
 
 failure_tests=(
@@ -42,6 +43,7 @@ if [ "$1" == "debug" ]; then
       success_tests+=("$i")
     fi
 
+    # Grepping directly does not work so we need to use a temporary file
     valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=$log_file "$takuzu_debug" "$i" &> /dev/null
     val_res="$(cat $log_file | grep "LEAK SUMMARY" -A5)"
     if [ "$val_res" == "" ]; then
@@ -61,6 +63,7 @@ if [ "$1" == "debug" ]; then
       success_tests+=("$i")
     fi
 
+    # Grepping directly does not work so we need to use a temporary file
     valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=$log_file "$takuzu_debug" "$i" &> /dev/null
     val_res="$(cat $log_file | grep "LEAK SUMMARY" -A5)"
     if [ "$val_res" == "" ]; then
@@ -71,10 +74,10 @@ if [ "$1" == "debug" ]; then
   done
 else
   for i in "${normal_test[@]}"; do
-    $takuzu "$i" &> /dev/null
+    $takuzu "$i" &> /tmp/takuzu_error
     if [ $? -ne 0 ]; then
       echo "- ✗ $i"
-      failed_tests+=("$i")
+      failed_tests+=("$i: $(cat /tmp/takuzu_error)")
     else
       echo "- ✓ $i"
       success_tests+=("$i")
@@ -94,7 +97,9 @@ else
 fi
 
 echo "Tests passed: ${#success_tests[@]}"
-echo "Tests failed: ${#failed_tests[@]}"
+for i in "${failed_tests[@]}"; do
+  echo "Failure: $i"
+done
 
 if [ "$1" == "debug" ]; then
   echo "Valgrind passed: ${#good_valgrind[@]}"

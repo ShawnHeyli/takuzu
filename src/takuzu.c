@@ -29,6 +29,8 @@ software_info sw = {
     .verbose = false,
 };
 
+t_mode mode = MODE_FIRST;
+
 int main(int argc, char *argv[]) {
   sw.output_file = stdout;
   t_grid grid;
@@ -44,13 +46,19 @@ int main(int argc, char *argv[]) {
       errx(EXIT_FAILURE, "no input file to solve!");
     }
     file_parser(sw.grid, argv[optind]);
+
+    apply_heuristics(sw.grid);
+
+    printf("Solved grid:\n");
+    grid_print(sw.grid, stdout);
   } else if (sw.mode == GENERATOR) {
     if (sw.verbose) {
       printf("Generator mode detected\n");
     }
-
     generate_grid(sw.grid, sw.percentage_fill);
-    grid_print(sw.grid, sw.output_file);
+
+    printf("Generated grid:\n");
+    grid_print(sw.grid, stdout);
   }
 
   grid_free(sw.grid);
@@ -259,12 +267,14 @@ void parse_args(int argc, char **argv) {
 
         sw.mode = SOLVER;
         sw.all = true;
+        mode = MODE_ALL;
         break;
 
       case 'g':
         if (sw.mode == SOLVER) {
           errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
         }
+        puts("g");
 
         sw.mode = GENERATOR;
         if (optarg != NULL) {
@@ -289,6 +299,9 @@ void parse_args(int argc, char **argv) {
         if (sw.mode == SOLVER) {
           errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
         }
+        puts("N");
+        // We don't set the mode to GENERATOR so that it will error out if there
+        // is no -g option
         sw.percentage_fill = atoi(optarg);
         break;
 
