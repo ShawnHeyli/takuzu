@@ -17,6 +17,7 @@ normal_test=(
   "tests/solver/medium"
   "tests/solver/onesolution"
   "tests/solver/severalsolutions"
+  "tests/solver/onesolution -u"
 )
 
 failure_tests=(
@@ -27,6 +28,7 @@ failure_tests=(
   "-g 214748364772391" # Bigger than INT_MAX
   "tests/solver/nosolution"
   "tests/solver/invalid"
+  "tests/solver/severalsolutions -u"
 )
 
 success_tests=()

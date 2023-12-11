@@ -53,20 +53,15 @@ int main(int argc, char *argv[]) {
       grid_print(sw.grid, stdout);
     }
 
-    t_grid *solution = NULL;
-    solution = grid_solver(sw.grid, mode);
+    t_grid *solution = grid_solver(sw.grid, mode);
 
-    if (solution == NULL) {
-      grid_free(solution);
+    if (solution == NULL && mode == MODE_FIRST) {
       grid_free(sw.grid);
+
       return EXIT_FAILURE;
-    } else {
-      printf("Solution found:\n");
-      grid_print(solution, sw.output_file);
-      grid_free(solution);
-      grid_free(sw.grid);
-      return EXIT_SUCCESS;
     }
+    grid_free(solution);
+    free(solution);
   } else if (sw.mode == GENERATOR) {
     if (sw.verbose) {
       printf("Generator mode detected\n");
@@ -111,7 +106,7 @@ void grid_allocate(t_grid *g, int size) {
 }
 
 // Free memory allocated for a t_grid structure
-void grid_free(const t_grid *g) {
+void grid_free(t_grid *g) {
   if (g == NULL || g->grid == NULL) {
     return;
   }
@@ -144,9 +139,9 @@ bool check_char(char c) {
   return false;
 }
 
-// The parser must be able to read a grid of size 4 to 64 with only one scan of
-// the file. The scanner has
-// to be as robust as possible when a user provides an incorrect grid
+// The parser must be able to read a grid of size 4 to 64 with only one scan
+// of the file. The scanner has to be as robust as possible when a user
+// provides an incorrect grid
 //    file.A meaningful error message must be issued in these situations,
 //    all dynamically allocated memory has to be freed and the program has to
 //        stop and return EXIT_FAILURE
@@ -318,8 +313,8 @@ void parse_args(int argc, char **argv) {
           errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
         }
         puts("N");
-        // We don't set the mode to GENERATOR so that it will error out if there
-        // is no -g option
+        // We don't set the mode to GENERATOR so that it will error out if
+        // there is no -g option
         sw.percentage_fill = atoi(optarg);
         break;
 
@@ -369,6 +364,7 @@ void parse_args(int argc, char **argv) {
     }
   }
 
+  // Incompatibility checks
   if (argv[optind] == NULL && sw.mode == SOLVER) {
     errx(EXIT_FAILURE, "ERROR -> no input file to solve!");
   } else if (argv[optind] != NULL && sw.mode == GENERATOR) {
@@ -378,6 +374,7 @@ void parse_args(int argc, char **argv) {
     errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
   }
 
+  // Meaning only a file has been given
   if (argv[optind] != NULL && sw.mode == NONE) {
     sw.mode = SOLVER;
   }

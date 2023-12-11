@@ -20,19 +20,6 @@ void grid_copy(t_grid *gs, t_grid *gd);
 void set_cell(int i, int j, t_grid *g, char v);
 char get_cell(int i, int j, t_grid *g);
 
-typedef struct node {
-  choice_t choice;
-  struct node *next;
-} node_t;
-typedef struct {
-  node_t *head;
-} list_t;
-
-void list_init(list_t *l);
-void list_add(list_t *l, choice_t choice);
-void list_remove(list_t *l);
-void list_print(list_t *l, FILE *fd);
-
 bool is_grid_full(t_grid *g);
 
 bool is_row_empty(int i, t_grid *g);

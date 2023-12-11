@@ -36,7 +36,7 @@ void usage();
 void parse_args(int argc, char **argv);
 
 void grid_allocate(t_grid *g, int size);
-void grid_free(const t_grid *g);
+void grid_free(t_grid *g);
 void grid_print(const t_grid *g, FILE *fd);
 void file_parser(t_grid *grid, char *filename);
 bool check_char(char c);

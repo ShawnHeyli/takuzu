@@ -12,7 +12,6 @@
 
 #include "takuzu.h"
 
-// we consider that the destination grid is already allocated
 void grid_copy(t_grid *gs, t_grid *gd) {
   gd->size = gs->size;
   gd->grid = malloc(gd->size * sizeof(char *));
@@ -268,34 +267,18 @@ void add_solution(t_grid *grid, t_grid **solutions, int *nb_solutions) {
   (*nb_solutions)++;
 }
 
-void list_init(list_t *l) { l->head = NULL; }
-
-void list_add(list_t *l, choice_t choice) {
-  node_t *new_node = malloc(sizeof(node_t));
-  new_node->choice = choice;
-  new_node->next = l->head;
-  l->head = new_node;
-}
-
-void list_remove(list_t *l) {
-  if (l->head == NULL) {
+void free_solutions(t_grid **solutions, int nb_solutions) {
+  if (solutions == NULL) {
     return;
   }
-  node_t *tmp = l->head;
-  l->head = l->head->next;
-  free(tmp);
-}
 
-void list_print(list_t *l, FILE *fd) {
-  node_t *tmp = l->head;
-  while (tmp != NULL) {
-    grid_choice_print(tmp->choice, fd);
-    tmp = tmp->next;
+  for (int i = 0; i < nb_solutions; i++) {
+    grid_free(solutions[i]);
+    free(solutions[i]);
   }
+  free(solutions);
 }
 
-// Solve a grid using backtracking, and stack of choices
-// Solve a grid using backtracking, and stack of choices
 t_grid *grid_solver(t_grid *grid, const t_mode mode) {
   if (sw.verbose) {
     printf("Solving grid...\n");
@@ -318,26 +301,43 @@ t_grid *grid_solver(t_grid *grid, const t_mode mode) {
 
   sub_grid_solver(grid, solution, solutions, &nb_solutions);
 
+  if (sw.unique && nb_solutions > 1) {
+    printf("Grid has more than one solution, aborting...\n");
+    free(solution);
+    free_solutions(solutions, nb_solutions);
+    return NULL;
+  }
+
+  printf("Number of solutions: %d\n", nb_solutions);
+  for (int i = 0; i < nb_solutions; i++) {
+    printf("Solution %d :\n", i + 1);
+    printf("Grid for solution %d :\n", i + 1);
+    grid_print(solutions[i], stdout);
+  }
+
   if (nb_solutions == 0) {
     if (sw.verbose) {
       printf("No solution found\n");
     }
-    free(solutions);
+    grid_free(solution);
+    free(solution);
+    free_solutions(solutions, nb_solutions);
     return NULL;
   }
 
   if (mode == MODE_FIRST) {
-    if (sw.verbose) {
-      printf("Returning first solution\n");
-    }
-    t_grid *first_solution = solutions[0];
-    free(solution);
-    free(solutions);
-    return first_solution;
+    grid_copy(solutions[0], solution);
+    free_solutions(solutions, nb_solutions);
+    return solution;
   }
 
-  free(solution);
-  free(solutions);
+  else if (mode == MODE_ALL) {
+    free(solution);
+    free_solutions(solutions, nb_solutions);
+    return NULL;
+  }
+
+  // failsafe
   return NULL;
 }
 
@@ -367,14 +367,12 @@ void sub_grid_solver(t_grid *grid, t_grid *solution, t_grid **solutions,
   t_grid grid_1, grid_2;
   choice_t choice = grid_choice(grid);
 
-  grid_allocate(&grid_1, grid->size);
   grid_copy(grid, &grid_1);
   choice.choice = '0';
   grid_choice_apply(&grid_1, choice);
   sub_grid_solver(&grid_1, solution, solutions, nb_solutions);
   grid_free(&grid_1);
 
-  grid_allocate(&grid_2, grid->size);
   grid_copy(grid, &grid_2);
   choice.choice = '1';
   grid_choice_apply(&grid_2, choice);
