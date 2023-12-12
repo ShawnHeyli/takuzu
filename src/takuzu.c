@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
   if (sw.mode == SOLVER) {
     if (sw.verbose) {
-      printf("Solver mode detected\n");
+      fprintf(sw.output_file, "Solver mode detected\n");
     }
     if (argv[optind] == NULL) {
       errx(EXIT_FAILURE, "no input file to solve!");
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     file_parser(sw.grid, argv[optind]);
 
     if (sw.verbose) {
-      printf("Parsed grid:\n");
+      fprintf(sw.output_file, "Parsed grid:\n");
       grid_print(sw.grid, stdout);
     }
 
@@ -59,17 +59,19 @@ int main(int argc, char *argv[]) {
     }
   } else if (sw.mode == GENERATOR) {
     if (sw.verbose) {
-      printf("Generator mode detected\n");
+      fprintf(sw.output_file, "Generator mode detected\n");
     }
 
+    grid_allocate(sw.grid, sw.grid_size);
+
     if (sw.unique) {
-      printf("Unique mode detected\n");
+      fprintf(sw.output_file, "Unique mode detected\n");
       generate_unique_grid(sw.grid, sw.percentage_fill);
     } else {
       generate_grid(sw.grid, sw.percentage_fill);
     }
 
-    printf("Generated grid:\n");
+    fprintf(sw.output_file, "Generated grid:\n");
     grid_print(sw.grid, stdout);
   }
 
@@ -148,7 +150,7 @@ bool check_char(char c) {
 //        stop and return EXIT_FAILURE
 void file_parser(t_grid *grid, char *filename) {
   if (sw.verbose) {
-    printf("Parsing file: %s\n", filename);
+    fprintf(sw.output_file, "Parsing file: %s\n", filename);
   }
 
   FILE *fd = fopen(filename, "r");
@@ -367,7 +369,6 @@ void parse_args(int argc, char **argv) {
   if (argv[optind] == NULL && sw.mode == SOLVER) {
     errx(EXIT_FAILURE, "ERROR -> no input file to solve!");
   } else if (argv[optind] != NULL && sw.mode == GENERATOR) {
-    printf("%s\n", argv[optind]);
     errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
   } else if (sw.unique && (sw.mode != GENERATOR)) {
     errx(EXIT_FAILURE, "ERROR -> invalid option combination!");

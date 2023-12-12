@@ -112,8 +112,9 @@ bool is_consistent(t_grid *g) {
       }
       if (identical) {
         if (sw.verbose) {
-          printf("Grid is not consistent : rows %d and %d are identical\n", i,
-                 j);
+          fprintf(sw.output_file,
+                  "Grid is not consistent : rows %d and %d are identical\n", i,
+                  j);
         }
         return false;
       }
@@ -135,8 +136,9 @@ bool is_consistent(t_grid *g) {
       }
       if (identical) {
         if (sw.verbose) {
-          printf("Grid is not consistent : columns %d and %d are identical\n",
-                 i, j);
+          fprintf(sw.output_file,
+                  "Grid is not consistent : columns %d and %d are identical\n",
+                  i, j);
         }
         return false;
       }
@@ -160,9 +162,9 @@ bool is_consistent(t_grid *g) {
       }
       if (zeros > 2 || ones > 2) {
         if (sw.verbose) {
-          printf(
-              "Grid is not consistent : more than three consecutive zeros "
-              "and ones in rows\n");
+          fprintf(sw.output_file,
+                  "Grid is not consistent : more than three consecutive zeros "
+                  "and ones in rows\n");
         }
         return false;
       }
@@ -185,9 +187,9 @@ bool is_consistent(t_grid *g) {
       }
       if (zeros > 2 || ones > 2) {
         if (sw.verbose) {
-          printf(
-              "Grid is not consistent : more than three consecutive zeros "
-              "and ones in columns\n");
+          fprintf(sw.output_file,
+                  "Grid is not consistent : more than three consecutive zeros "
+                  "and ones in columns\n");
         }
         return false;
       }
@@ -212,7 +214,7 @@ bool is_grid_full(t_grid *g) {
 // constraints of the Takuzu
 bool is_valid(t_grid *g) {
   if (sw.verbose) {
-    printf("Checking validity...\n");
+    fprintf(sw.output_file, "Checking validity...\n");
   }
   return is_consistent(g) && is_grid_full(g);
 }
@@ -252,7 +254,7 @@ choice_t grid_choice(t_grid *grid) {
 
 void add_solution(t_grid *grid, t_grid **solutions, int *nb_solutions) {
   if (sw.verbose) {
-    printf("Adding solution...\n");
+    fprintf(sw.output_file, "Adding solution...\n");
   }
 
   solutions[*nb_solutions] = malloc(sizeof(t_grid));
@@ -274,12 +276,13 @@ void free_solutions(t_grid **solutions, int nb_solutions) {
 
 bool grid_solver(t_grid *grid, const t_mode mode) {
   if (sw.verbose) {
-    printf("Solving grid...\n");
+    fprintf(sw.output_file, "Solving grid...\n");
   }
 
   if (!is_consistent(grid)) {
     if (sw.verbose) {
-      printf("Impossible to solve starting grid is inconsistent\n");
+      fprintf(sw.output_file,
+              "Impossible to solve starting grid is inconsistent\n");
     }
     return NULL;
   }
@@ -287,7 +290,7 @@ bool grid_solver(t_grid *grid, const t_mode mode) {
   // Also handles the case where the grid is already solved
   if (is_grid_full(grid)) {
     if (sw.verbose) {
-      printf("Starting grid is already completed\n");
+      fprintf(sw.output_file, "Starting grid is already completed\n");
     }
     return grid;
   }
@@ -387,7 +390,7 @@ int grid_solver_recursive(t_grid *grid, t_grid **solutions, int *nb_solutions,
 // applies to ones as well.
 bool apply_heuristic1(t_grid *g) {
   if (sw.verbose) {
-    printf("Applying heuristic 1...\n");
+    fprintf(sw.output_file, "Applying heuristic 1...\n");
   }
 
   bool changed = false;
@@ -395,7 +398,7 @@ bool apply_heuristic1(t_grid *g) {
   changed = sub_heuristic1_cols(g) || changed;
 
   if (sw.verbose && changed) {
-    printf("Heuristic 1 has modified the grid\n");
+    fprintf(sw.output_file, "Heuristic 1 has modified the grid\n");
   }
   return changed;
 }
@@ -409,14 +412,14 @@ bool sub_heuristic1_rows(t_grid *g) {
         // if the cell after is empty, we fill it with a one
         if (get_cell(i, j + 2, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 1\n", i, j + 2);
+            fprintf(sw.output_file, "Cell (%d, %d) => 1\n", i, j + 2);
           }
           set_cell(i, j + 2, g, '1');
           changed = true;
         }  // if the cell before is empty, we fill it with a one
         else if (j > 0 && get_cell(i, j - 1, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 1\n", i, j - 1);
+            fprintf(sw.output_file, "Cell (%d, %d) => 1\n", i, j - 1);
           }
           set_cell(i, j - 1, g, '1');
           changed = true;
@@ -427,14 +430,14 @@ bool sub_heuristic1_rows(t_grid *g) {
         // if the cell after is empty, we fill it with a zero
         if (get_cell(i, j + 2, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 0\n", i, j + 2);
+            fprintf(sw.output_file, "Cell (%d, %d) => 0\n", i, j + 2);
           }
           set_cell(i, j + 2, g, '0');
           changed = true;
         }  // if the cell before is empty, we fill it with a zero
         else if (j > 0 && get_cell(i, j - 1, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 0\n", i, j - 1);
+            fprintf(sw.output_file, "Cell (%d, %d) => 0\n", i, j - 1);
           }
           set_cell(i, j - 1, g, '0');
           changed = true;
@@ -454,14 +457,14 @@ bool sub_heuristic1_cols(t_grid *g) {
         // if the cell after is empty, we fill it with a one
         if (get_cell(i + 2, j, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 1\n", i + 2, j);
+            fprintf(sw.output_file, "Cell (%d, %d) => 1\n", i + 2, j);
           }
           set_cell(i + 2, j, g, '1');
           changed = true;
         }  // if the cell before is empty, we fill it with a one
         else if (i > 0 && get_cell(i - 1, j, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 1\n", i - 1, j);
+            fprintf(sw.output_file, "Cell (%d, %d) => 1\n", i - 1, j);
           }
           set_cell(i - 1, j, g, '1');
           changed = true;
@@ -472,14 +475,14 @@ bool sub_heuristic1_cols(t_grid *g) {
         // if the cell after is empty, we fill it with a zero
         if (get_cell(i + 2, j, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 0\n", i + 2, j);
+            fprintf(sw.output_file, "Cell (%d, %d) => 0\n", i + 2, j);
           }
           set_cell(i + 2, j, g, '0');
           changed = true;
         }  // if the cell before is empty, we fill it with a zero
         else if (i > 0 && get_cell(i - 1, j, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 0\n", i - 1, j);
+            fprintf(sw.output_file, "Cell (%d, %d) => 0\n", i - 1, j);
           }
           set_cell(i - 1, j, g, '0');
           changed = true;
@@ -495,7 +498,7 @@ bool sub_heuristic1_cols(t_grid *g) {
 // applies to ones
 bool apply_heuristic2(t_grid *g) {
   if (sw.verbose) {
-    printf("Applying heuristic 2...\n");
+    fprintf(sw.output_file, "Applying heuristic 2...\n");
   }
   bool changed = false;
 
@@ -503,7 +506,7 @@ bool apply_heuristic2(t_grid *g) {
   changed = sub_heuristic2_cols(g) || changed;
 
   if (sw.verbose && changed) {
-    printf("Heuristic 2 applied\n");
+    fprintf(sw.output_file, "Heuristic 2 applied\n");
   }
   return changed;
 }
@@ -526,7 +529,7 @@ bool sub_heuristic2_rows(t_grid *g) {
       for (int j = 0; j < g->size; j++) {
         if (get_cell(i, j, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 1\n", i, j);
+            fprintf(sw.output_file, "Cell (%d, %d) => 1\n", i, j);
           }
           set_cell(i, j, g, '1');
           changed = true;
@@ -536,7 +539,7 @@ bool sub_heuristic2_rows(t_grid *g) {
       for (int j = 0; j < g->size; j++) {
         if (get_cell(i, j, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 0\n", i, j);
+            fprintf(sw.output_file, "Cell (%d, %d) => 0\n", i, j);
           }
           set_cell(i, j, g, '0');
           changed = true;
@@ -563,7 +566,7 @@ bool sub_heuristic2_cols(t_grid *g) {
       for (int i = 0; i < g->size; i++) {
         if (get_cell(i, j, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 1\n", i, j);
+            fprintf(sw.output_file, "Cell (%d, %d) => 1\n", i, j);
           }
           set_cell(i, j, g, '1');
           changed = true;
@@ -573,7 +576,7 @@ bool sub_heuristic2_cols(t_grid *g) {
       for (int i = 0; i < g->size; i++) {
         if (get_cell(i, j, g) == '_') {
           if (sw.verbose) {
-            printf("Cell (%d, %d) => 0\n", i, j);
+            fprintf(sw.output_file, "Cell (%d, %d) => 0\n", i, j);
           }
           set_cell(i, j, g, '0');
           changed = true;
@@ -586,13 +589,13 @@ bool sub_heuristic2_cols(t_grid *g) {
 
 void apply_heuristics(t_grid *g) {
   if (sw.verbose) {
-    printf("Applying heuristics...\n");
+    fprintf(sw.output_file, "Applying heuristics...\n");
   }
   // apply heuristics until guess are exhausted
 
   while (apply_heuristic1(g) || apply_heuristic2(g)) {
     if (sw.verbose) {
-      printf("New grid :\n");
+      fprintf(sw.output_file, "New grid :\n");
       grid_print(g, stdout);
     }
   }
@@ -600,11 +603,8 @@ void apply_heuristics(t_grid *g) {
 
 void generate_grid(t_grid *g, int percentage_fill) {
   if (sw.verbose) {
-    printf("Generating grid of size %d\n", g->size);
+    fprintf(sw.output_file, "Generating grid of size %d\n", g->size);
   }
-
-  grid_allocate(sw.grid, sw.grid_size);
-
   // get the number of cells to fill from percentage
   int cells_fill = (((g->size * g->size) * percentage_fill) / 100);
   // fill the grid with n 0 and 1 at random
