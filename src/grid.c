@@ -97,10 +97,6 @@ bool is_col_full(int j, t_grid *g) {
 // a.no identical lines / columns (only check full lines / columns)
 // b.no more than three consecutive zeros and ones in rows and columns.
 bool is_consistent(t_grid *g) {
-  if (sw.verbose) {
-    printf("Checking consistency...\n");
-  }
-
   // check for identical rows
   for (int i = 0; i < g->size; i++) {
     if (!is_row_full(i, g)) {
@@ -198,9 +194,6 @@ bool is_consistent(t_grid *g) {
     }
   }
 
-  if (sw.verbose) {
-    printf("Grid is consistent\n");
-  }
   return true;
 }
 
@@ -261,10 +254,10 @@ void add_solution(t_grid *grid, t_grid **solutions, int *nb_solutions) {
   if (sw.verbose) {
     printf("Adding solution...\n");
   }
+
   solutions[*nb_solutions] = malloc(sizeof(t_grid));
-  grid_allocate(solutions[*nb_solutions], grid->size);
   grid_copy(grid, solutions[*nb_solutions]);
-  (*nb_solutions)++;
+  *nb_solutions += 1;
 }
 
 void free_solutions(t_grid **solutions, int nb_solutions) {
@@ -279,105 +272,114 @@ void free_solutions(t_grid **solutions, int nb_solutions) {
   free(solutions);
 }
 
-t_grid *grid_solver(t_grid *grid, const t_mode mode) {
+bool grid_solver(t_grid *grid, const t_mode mode) {
   if (sw.verbose) {
     printf("Solving grid...\n");
   }
 
-  t_grid *solution = malloc(sizeof(t_grid));
-  grid_copy(grid, solution);
-
-  // We don't do this on grid because this leads to segfault in main
-  // when we try to solution and grid that both point to the same grid
-  if (is_valid(solution)) {
+  if (!is_consistent(grid)) {
     if (sw.verbose) {
-      printf("Grid is already solved\n");
+      printf("Impossible to solve starting grid is inconsistent\n");
     }
-    return solution;
+    return NULL;
+  }
+
+  // Also handles the case where the grid is already solved
+  if (is_grid_full(grid)) {
+    if (sw.verbose) {
+      printf("Starting grid is already completed\n");
+    }
+    return grid;
   }
 
   t_grid **solutions = malloc(sizeof(t_grid *));
   int nb_solutions = 0;
+  int nb_solutions_found = 0;
 
-  sub_grid_solver(grid, solution, solutions, &nb_solutions);
+  t_grid *grid_tmp = malloc(sizeof(t_grid));
+  grid_allocate(grid_tmp, grid->size);
+  grid_copy(grid, grid_tmp);
 
-  if (sw.unique && nb_solutions > 1) {
-    printf("Grid has more than one solution, aborting...\n");
-    free(solution);
+  nb_solutions_found =
+      grid_solver_recursive(grid_tmp, solutions, &nb_solutions, mode);
+
+  if (nb_solutions_found == 0) {
+    fprintf(sw.output_file, "Number of solutions: 0\n");
     free_solutions(solutions, nb_solutions);
-    return NULL;
+    return false;
   }
 
-  printf("Number of solutions: %d\n", nb_solutions);
-  for (int i = 0; i < nb_solutions; i++) {
-    printf("Solution %d :\n", i + 1);
-    printf("Grid for solution %d :\n", i + 1);
-    grid_print(solutions[i], stdout);
-  }
-
-  if (nb_solutions == 0) {
-    if (sw.verbose) {
-      printf("No solution found\n");
-    }
-    grid_free(solution);
-    free(solution);
-    free_solutions(solutions, nb_solutions);
-    return NULL;
-  }
-
+  // I prefer handling it all here instead of both the main and here
   if (mode == MODE_FIRST) {
-    grid_copy(solutions[0], solution);
-    free_solutions(solutions, nb_solutions);
-    return solution;
+    fprintf(sw.output_file, "Number of solutions: 1\n");
+    fprintf(sw.output_file, "Solution 1\n");
+    fprintf(sw.output_file, "Grid for solution 1:\n");
+    grid_print(solutions[0], sw.output_file);
+    return true;
+  } else if (mode == MODE_ALL) {
+    fprintf(sw.output_file, "Number of solutions: %d\n", nb_solutions_found);
+    for (int i = 0; i < nb_solutions_found; i++) {
+      fprintf(sw.output_file, "Solution %d\n", i + 1);
+      fprintf(sw.output_file, "Grid for solution %d:\n", i + 1);
+      grid_print(solutions[i], sw.output_file);
+    }
+    return true;
   }
-
-  else if (mode == MODE_ALL) {
-    free(solution);
-    free_solutions(solutions, nb_solutions);
-    return NULL;
-  }
-
   // failsafe
-  return NULL;
+  return false;
 }
 
-// Recursive function to solve a grid
-void sub_grid_solver(t_grid *grid, t_grid *solution, t_grid **solutions,
-                     int *nb_solutions) {
-  if (!is_consistent(grid) || is_grid_full(grid) || *nb_solutions > 1) {
-    return;
+int grid_solver_recursive(t_grid *grid, t_grid **solutions, int *nb_solutions,
+                          const t_mode mode) {
+  if (mode == MODE_FIRST && *nb_solutions == 1) {
+    return 1;
+  }
+
+  if (!is_consistent(grid)) {
+    return 0;
   }
 
   if (is_valid(grid)) {
     add_solution(grid, solutions, nb_solutions);
-    return;
+    return 1;
   }
 
   apply_heuristics(grid);
 
-  if (is_valid(grid)) {
-    add_solution(grid, solutions, nb_solutions);
-    return;
+  if (!is_consistent(grid)) {
+    return 0;
   }
 
-  if (is_grid_full(grid)) {
-    return;
+  if (is_valid(grid)) {
+    add_solution(grid, solutions, nb_solutions);
+    return 1;
   }
 
   t_grid grid_1, grid_2;
+  grid_copy(grid, &grid_1);
+  grid_copy(grid, &grid_2);
+
+  int nb_solutions_local = 0;
   choice_t choice = grid_choice(grid);
 
-  grid_copy(grid, &grid_1);
-  choice.choice = '0';
   grid_choice_apply(&grid_1, choice);
-  sub_grid_solver(&grid_1, solution, solutions, nb_solutions);
+  nb_solutions_local +=
+      grid_solver_recursive(&grid_1, solutions, nb_solutions, mode);
+  grid_choice_remove(&grid_1, choice);
   grid_free(&grid_1);
 
-  grid_copy(grid, &grid_2);
-  choice.choice = '1';
+  if (nb_solutions_local > 0 && mode == MODE_FIRST) {
+    return nb_solutions_local;
+  }
+
+  choice.choice = choice.choice == '0' ? '1' : '0';  // invert choice
   grid_choice_apply(&grid_2, choice);
-  sub_grid_solver(&grid_2, solution, solutions, nb_solutions);
+  nb_solutions_local +=
+      grid_solver_recursive(&grid_2, solutions, nb_solutions, mode);
+  grid_choice_remove(&grid_2, choice);
   grid_free(&grid_2);
+
+  return nb_solutions_local;
 }
 
 // Heuristic 1 : If a row (respectively column) has two consecutive
@@ -606,20 +608,11 @@ void generate_grid(t_grid *g, int percentage_fill) {
   int cells_fill = (((g->size * g->size) * percentage_fill) / 100);
   // fill the grid with n 0 and 1 at random
   while (cells_fill > 0) {
-    int i = rand() % g->size;
-    int j = rand() % g->size;
-    // Rand was inserted in the ifs but behaved weirdly, it's doing fine
-    // here
-    int random = rand() % 2;
-    // If a cell is already filled, we retry somewhere else
-    if (get_cell(i, j, g) == '_') {
-      if (random == 0) {
-        set_cell(i, j, g, '0');
-      } else if (random % 2 == 1) {
-        set_cell(i, j, g, '1');
-      }
-      cells_fill--;
-    }
+    apply_heuristics(g);
+
+    choice_t choice = grid_choice(g);
+    grid_choice_apply(g, choice);
+    cells_fill--;
   }
 
   if (!is_consistent(g)) {

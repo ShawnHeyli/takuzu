@@ -15,9 +15,10 @@ normal_test=(
   "tests/solver/heuristic"
   "tests/solver/easy"
   "tests/solver/medium"
-  "tests/solver/onesolution"
-  "tests/solver/severalsolutions"
-  "tests/solver/onesolution -u"
+  "tests/solver/onesolution_1"
+  "tests/solver/onesolution_2"
+  "tests/solver/sevensolutions"
+  "tests/solver/empty_4"
 )
 
 failure_tests=(
@@ -26,7 +27,7 @@ failure_tests=(
   "-g 0" # Invalid grid size
   "-g 6" # Invalid grid size
   "-g 214748364772391" # Bigger than INT_MAX
-  "tests/solver/nosolution"
+  "tests/solver/nosolution" # I pretty much (if not) always get a solution ?
   "tests/solver/invalid"
   "tests/solver/severalsolutions -u"
 )

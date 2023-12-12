@@ -36,9 +36,9 @@ void grid_choice_print(const choice_t choice, FILE *fd);
 void add_solution(t_grid *grid, t_grid **solutions, int *nb_solutions);
 void free_solutions(t_grid **solutions, int nb_solutions);
 
-t_grid *grid_solver(t_grid *grid, const t_mode mode);
-void sub_grid_solver(t_grid *grid, t_grid *solution, t_grid **solutions,
-                     int *nb_solutions);
+bool grid_solver(t_grid *grid, const t_mode mode);
+int grid_solver_recursive(t_grid *grid, t_grid **solutions, int *nb_solutions,
+                          const t_mode mode);
 
 bool apply_heuristic1(t_grid *g);
 bool sub_heuristic1_rows(t_grid *g);

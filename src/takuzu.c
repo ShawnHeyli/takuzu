@@ -53,19 +53,14 @@ int main(int argc, char *argv[]) {
       grid_print(sw.grid, stdout);
     }
 
-    t_grid *solution = grid_solver(sw.grid, mode);
-
-    if (solution == NULL && mode == MODE_FIRST) {
-      grid_free(sw.grid);
-
+    if (!grid_solver(sw.grid, mode)) {
       return EXIT_FAILURE;
     }
-    grid_free(solution);
-    free(solution);
   } else if (sw.mode == GENERATOR) {
     if (sw.verbose) {
       printf("Generator mode detected\n");
     }
+
     generate_grid(sw.grid, sw.percentage_fill);
 
     printf("Generated grid:\n");
@@ -289,7 +284,6 @@ void parse_args(int argc, char **argv) {
         if (sw.mode == SOLVER) {
           errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
         }
-        puts("g");
 
         sw.mode = GENERATOR;
         if (optarg != NULL) {
@@ -312,7 +306,6 @@ void parse_args(int argc, char **argv) {
         if (sw.mode == SOLVER) {
           errx(EXIT_FAILURE, "ERROR -> invalid option combination!");
         }
-        puts("N");
         // We don't set the mode to GENERATOR so that it will error out if
         // there is no -g option
         sw.percentage_fill = atoi(optarg);
