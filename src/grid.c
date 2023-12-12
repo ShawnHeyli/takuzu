@@ -608,8 +608,6 @@ void generate_grid(t_grid *g, int percentage_fill) {
   int cells_fill = (((g->size * g->size) * percentage_fill) / 100);
   // fill the grid with n 0 and 1 at random
   while (cells_fill > 0) {
-    apply_heuristics(g);
-
     choice_t choice = grid_choice(g);
     grid_choice_apply(g, choice);
     cells_fill--;
