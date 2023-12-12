@@ -603,7 +603,8 @@ void generate_grid(t_grid *g, int percentage_fill) {
     printf("Generating grid of size %d\n", g->size);
   }
 
-  grid_allocate(g, sw.grid_size);
+  grid_allocate(sw.grid, sw.grid_size);
+
   // get the number of cells to fill from percentage
   int cells_fill = (((g->size * g->size) * percentage_fill) / 100);
   // fill the grid with n 0 and 1 at random
@@ -614,10 +615,27 @@ void generate_grid(t_grid *g, int percentage_fill) {
   }
 
   if (!is_consistent(g)) {
-    if (sw.verbose) {
-      printf("Grid is not consistent, retrying...\n");
-    }
-    grid_free(g);
     generate_grid(g, percentage_fill);
+  }
+}
+
+t_grid *generate_unique_grid(t_grid *grid, int percentage_fill) {
+  generate_grid(grid, percentage_fill);
+
+  t_grid **solutions = malloc(sizeof(t_grid *));
+  int nb_solutions = 0;
+
+  t_grid *grid_tmp = malloc(sizeof(t_grid));
+  grid_allocate(grid_tmp, grid->size);
+  grid_copy(grid, grid_tmp);
+
+  grid_solver_recursive(grid_tmp, solutions, &nb_solutions, MODE_ALL);
+
+  if (nb_solutions == 1) {
+    free_solutions(solutions, nb_solutions);
+    return grid;
+  } else {
+    free_solutions(solutions, nb_solutions);
+    return generate_unique_grid(grid, percentage_fill);
   }
 }

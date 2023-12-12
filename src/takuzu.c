@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) {
     if (argv[optind] == NULL) {
       errx(EXIT_FAILURE, "no input file to solve!");
     }
+
     file_parser(sw.grid, argv[optind]);
 
     if (sw.verbose) {
@@ -61,7 +62,12 @@ int main(int argc, char *argv[]) {
       printf("Generator mode detected\n");
     }
 
-    generate_grid(sw.grid, sw.percentage_fill);
+    if (sw.unique) {
+      printf("Unique mode detected\n");
+      generate_unique_grid(sw.grid, sw.percentage_fill);
+    } else {
+      generate_grid(sw.grid, sw.percentage_fill);
+    }
 
     printf("Generated grid:\n");
     grid_print(sw.grid, stdout);

@@ -49,4 +49,6 @@ bool sub_heuristic2_cols(t_grid *g);
 
 void apply_heuristics(t_grid *g);
 void generate_grid(t_grid *g, int percentage_fill);
+t_grid *generate_unique_grid(t_grid *grid, int percentage_fill);
+
 #endif

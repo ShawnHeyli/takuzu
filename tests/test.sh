@@ -10,8 +10,9 @@ normal_test=(
   "-h"
   "tests/solver/solved"
   "-g 8"
-  "-g 16 -N 10"
-  #"-N 10 -g 16" # Works manually but not in the script, -g is not recognized, don't know why
+  "-g 16 -N 40"
+  "-g 32"
+  "-g 4 -u"
   "tests/solver/heuristic"
   "tests/solver/easy"
   "tests/solver/medium"
@@ -27,7 +28,7 @@ failure_tests=(
   "-g 0" # Invalid grid size
   "-g 6" # Invalid grid size
   "-g 214748364772391" # Bigger than INT_MAX
-  "tests/solver/nosolution" # I pretty much (if not) always get a solution ?
+  "tests/solver/nosolution"
   "tests/solver/invalid"
   "tests/solver/severalsolutions -u"
 )
