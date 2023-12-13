@@ -8,45 +8,72 @@
 
 \maketitle
 
+\section{TLDR}
+
+Everything works apart from the all solutions mode in the grid\_solver which does not work on grid with a lot of solutions because of a double free bug I couldn't figure out.
+And due to that the unique mode only works if it manages to find a every solution quickly.
+The main problem with the TP was the lack of time, though not related to the course itself but to the overall schedule of the master which is packed full.
+
+\section{Code organisation}
+
+I tried to stay true to the assignments by having only two files takuzu.c and grid.c (and their respectives headers), even though this posed a bit of challenge as on average
+each file is 500 lines which became hard to read after a while.
+
 \section{Heuristics}
 
-In this section, we discuss the heuristics implemented in our Takuzu solver. We have implemented the following heuristics:
+In only implemented the heuristics given within the paper.
 
 \begin{itemize}
-  \item Heuristic 1: Description of heuristic 1.
-  \item Heuristic 2: Description of heuristic 2.
-  \item Heuristic 3: Description of heuristic 3.
+  \item If a row (respectively column) has two consecutive zeroes, the cells before/after must be ones
+  \begin{itemize}
+    \item If the current cell and the next cell both contain '0', it checks the cell after the next cell. If that cell is empty (i.e., contains '\_'), it sets that cell to '1' and updates `changed` to `true`. If the cell after the next cell is not empty, it checks the cell before the current cell (if it exists) and if that cell is empty, it sets that cell to '1' and updates `changed` to `true`.
+    \end{itemize}
+  \item If a row (respectively column) has all its zeros filled, the remaining empty cells are ones
+    \begin{itemize}
+    \item The function iterates over each row i in the grid. For each row, it initializes two counters zeros and ones to count the number of '0's and '1's in the row, respectively. It then iterates over each cell j in the row and increments the appropriate counter based on the value of the cell.
+    \item After counting the '0's and '1's in the row, the function checks if the number of '0's or '1's is equal to half the size of the grid. If the number of '0's is equal to half the size of the grid, it means that the remaining empty cells in the row must be filled with '1's. Therefore, it iterates over the cells in the row again and sets any empty cells to '1'. (And we do the exact same with'1's)
+    \end{itemize}
 \end{itemize}
 
 \section{Grid Generation Algorithm}
+\subsection{Algorithm}
 
-In this section, we describe the algorithm used for grid generation and discuss its uniqueness and complexity. The algorithm we have used for grid generation is as follows:
+\begin{itemize}
+    \item While cells\_to\_fill is $>$ 1
+    \begin{itemize}
+        \item Step 1: We apply heuristics to try to simplify the grid
+        \item Step 2: Choose a random cell
+        \begin{itemize}
+            \item If the chosen cell is empty we fill it with a random number and decrement the number of cell we need to fill
+            \item If the chosen cell is full we return to step 1
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
 
-\begin{enumerate}
-  \item Step 1: Description of step 1.
-  \item Step 2: Description of step 2.
-  \item Step 3: Description of step 3.
-\end{enumerate}
+\subsection{Complexity}
+With $n$ the size of the grid we would have $O(2^{n^2})$
+This is because at each cell, we have two choices (0 or 1), and there are $n^2$ cells in total. 
 
-The uniqueness of the generated grids is ensured by applying certain constraints during the generation process. The complexity of the algorithm is O(n), where n is the size of the grid.
+\subsection{What could be implemented}
+
+The most logical way to improve this generation is by using probability like a how a human would solve the grid
+but this implies that we would always find the same grid in the end in think ? So we would maybe need to introduce some 
+randomness at the start to force to go other paths but this is only a fix. So this solution would be viable but only to find a single solution.
+
+Another thing could be to implement the grid as integers (for the empty we could use 2 for example) which may help the compiler with some better optimizations at the cost of the memory taken by a grid (4 times as more)
+
+\section{Testing strategy}
+
+My test suite isn't the most complete, but it faired well to test quite a few bugs,I chose not to include a unit test library because they don't allow to test with valgrind
+or the output of the program, and it would have taken some efforts to warm up with the specific library, so I decided to focus my testing efforts with "overall testing".
+
+In the end I decided to go with a simple bash file, that could test the return code of the program, and I added a test\_debug target to my makefile that does the normal tests plus it
+checks with valgrind against all the test target.
 
 \section{Code Quality and Performance}
+I tried implementing a field empty\_cells in my grid structure but I didn't follow through with because it goes against the philosophy of this work where we need to follow the guidelines
+and I though the increase in performance for parts of the code who do a lot of get\_cells (e.g is\_grid\_full) but I didn't find any meaningful differences
 
-\begin{itemize}
-  \item Utilisation d'un champ empty cells dans la structure grid.
-  \item Improvement 2: Description of improvement 2.
-  \item Improvement 3: Description of improvement 3.
-\end{itemize}
-
-\section{Problèmes avec mon code}
-
-\begin{itemize}
-  \item Utilisation d'un champ empty cells dans la structure grid.
-  \item Improvement 2: Description of improvement 2.
-  \item Improvement 3: Description of improvement 3.
-\end{itemize}
-
-
-These improvements have resulted in better code readability, maintainability, and performance.
+The code suffers from some minor memory leaks (<200 bytes) on the parts where I already have a problem of double free, but I avoided the major ones by testing with my test\_debug target
 
 \end{document}

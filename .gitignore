@@ -7,4 +7,5 @@ tests/coverage/html/
 trash/
 report/*
 !report/report.tex
+!report/Makefile
 *~

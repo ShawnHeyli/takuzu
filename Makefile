@@ -1,6 +1,7 @@
-.PHONY: all clean help
+.PHONY: all clean help report
 
 SRC_TAKUZU_DIR := src
+REPORT_TAKUZU_DIR := report
 
 # executed by default
 all:
@@ -11,6 +12,9 @@ test:
 
 test_debug:
 	make -f $(SRC_TAKUZU_DIR)/Makefile test_debug
+
+report: 
+	cd $(REPORT_TAKUZU_DIR) && make report
 
 # to clean object and executable files
 clean:
