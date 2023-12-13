@@ -596,7 +596,7 @@ void apply_heuristics(t_grid *g) {
   while (apply_heuristic1(g) || apply_heuristic2(g)) {
     if (sw.verbose) {
       fprintf(sw.output_file, "New grid :\n");
-      grid_print(g, stdout);
+      grid_print(g, sw.output_file);
     }
   }
 }

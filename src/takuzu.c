@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 
     if (sw.verbose) {
       fprintf(sw.output_file, "Parsed grid:\n");
-      grid_print(sw.grid, stdout);
+      grid_print(sw.grid, sw.output_file);
     }
 
     if (!grid_solver(sw.grid, mode)) {
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     }
 
     fprintf(sw.output_file, "Generated grid:\n");
-    grid_print(sw.grid, stdout);
+    grid_print(sw.grid, sw.output_file);
   }
 
   grid_free(sw.grid);
@@ -124,10 +124,6 @@ void grid_free(t_grid *g) {
 // (stdout if no -o option has been given)
 void grid_print(const t_grid *g, FILE *fd) {
   for (int i = 0; i < g->size; i++) {
-    // Ignore comment lines
-    if (g->grid[i][0] == '#') {
-      continue;
-    }
     for (int j = 0; j < g->size; j++) {
       fprintf(fd, "%c", g->grid[i][j]);
     }
@@ -320,16 +316,12 @@ void parse_args(int argc, char **argv) {
         break;
 
       case 'o': {
-        FILE *fd = fopen(optarg, "r");
+        FILE *fd = fopen(optarg, "w");
         if (fd == NULL) {
           fclose(fd);
           switch (errno) {
-            case ENOENT:
-              fprintf(stderr, "ERROR -> file '%s' not found!\n", optarg);
-              exit(EXIT_FAILURE);
-              break;
             case EACCES:
-              fprintf(stderr, "ERROR -> file '%s' not accessible!\n", optarg);
+              fprintf(stderr, "ERROR -> cannot create file %s!\n", optarg);
               exit(EXIT_FAILURE);
               break;
             default:
